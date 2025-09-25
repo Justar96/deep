@@ -2,6 +2,21 @@
 import { z } from 'zod'
 import type { DeepConfig } from './types.js'
 
+const ConversationCompressionSchema = z.object({
+  enabled: z.boolean().default(true),
+  threshold: z.number().min(0.1).max(1.0).default(0.7),
+  strategy: z.enum(['summarize', 'truncate', 'selective']).default('summarize'),
+  preserveContext: z.boolean().default(true),
+  maxCompressionRatio: z.number().min(0.1).max(0.8).default(0.3),
+})
+
+const ConversationConfigSchema = z.object({
+  compression: ConversationCompressionSchema,
+  maxTokens: z.number().positive().default(8000),
+  curationEnabled: z.boolean().default(true),
+  healthCheckInterval: z.number().positive().default(30),
+})
+
 const ConfigSchema = z.object({
   apiKey: z.string().min(1, 'OPENAI_API_KEY is required'),
   baseUrl: z.string().url().optional().nullable(),
@@ -15,6 +30,7 @@ const ConfigSchema = z.object({
   includeEncrypted: z.boolean().default(false),
   allowedTools: z.array(z.string()).default([]),
   logPaths: z.boolean().default(false),
+  conversation: ConversationConfigSchema,
 })
 
 export function loadConfig(): DeepConfig {
@@ -35,6 +51,19 @@ export function loadConfig(): DeepConfig {
     allowedTools: process.env.FIBER_ALLOWED_TOOLS ? process.env.FIBER_ALLOWED_TOOLS.split(',').map(t => t.trim()) : [],
     logPaths: process.env.OPENAI_LOG_PATHS === 'true',
     baseUrl,
+    // Enhanced conversation management configuration
+    conversation: {
+      compression: {
+        enabled: process.env.DEEP_COMPRESSION_ENABLED !== 'false',
+        threshold: parseFloat(process.env.DEEP_COMPRESSION_THRESHOLD || '0.7'),
+        strategy: (process.env.DEEP_COMPRESSION_STRATEGY as 'summarize' | 'truncate' | 'selective') || 'summarize',
+        preserveContext: process.env.DEEP_COMPRESSION_PRESERVE_CONTEXT !== 'false',
+        maxCompressionRatio: parseFloat(process.env.DEEP_COMPRESSION_MAX_RATIO || '0.3'),
+      },
+      maxTokens: parseInt(process.env.DEEP_MAX_TOKENS || '8000', 10),
+      curationEnabled: process.env.DEEP_CURATION_ENABLED !== 'false',
+      healthCheckInterval: parseInt(process.env.DEEP_HEALTH_CHECK_INTERVAL || '30', 10),
+    },
   }
   // Override store default when encrypted is enabled
   if (config.includeEncrypted && process.env.OPENAI_RESP_STORE === undefined) {

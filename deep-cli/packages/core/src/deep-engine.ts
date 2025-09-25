@@ -26,9 +26,10 @@ export class DeepEngine implements IDeepEngine {
       apiKey: config.apiKey,
       baseURL: config.baseUrl,
     })
-    
+
     this.responseClient = new OpenAIResponseClient(this.client, config)
-    this.conversationManager = new MemoryConversationManager()
+    // Initialize enhanced conversation manager with compression support
+    this.conversationManager = new MemoryConversationManager(this.client, config)
     this.toolRegistry = new BasicToolRegistry()
   }
 
@@ -102,7 +103,7 @@ export class DeepEngine implements IDeepEngine {
 
   updateConfig(updates: Partial<DeepConfig>): void {
     this.config = { ...this.config, ...updates }
-    
+
     // Recreate client if API settings changed
     if (updates.apiKey || updates.baseUrl) {
       this.client = new OpenAI({
@@ -110,6 +111,9 @@ export class DeepEngine implements IDeepEngine {
         baseURL: this.config.baseUrl,
       })
       this.responseClient = new OpenAIResponseClient(this.client, this.config)
+
+      // Update conversation manager with new client and config
+      this.conversationManager.initializeCompressionService(this.client, this.config)
     }
   }
 

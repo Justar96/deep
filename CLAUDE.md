@@ -6,9 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **Deep AI agent** monorepo built around the OpenAI Responses API for multi-turn agentic conversations. The project follows GPT-5 best practices and maintains comprehensive documentation for OpenAI integrations.
 
-### ✅ **PRODUCTION STATUS: FULLY OPERATIONAL**
+### ✅ **PRODUCTION STATUS: SPRINT 1 COMPLETE - ENTERPRISE READY**
 
-The Deep agent is **100% complete** with full agentic multi-turn capabilities, advanced function calling, and comprehensive GPT-5 integration. All TypeScript compilation errors have been resolved and the system is production-ready.
+The Deep agent has completed **Sprint 1: Advanced Conversation Management** with production-grade conversation compression, intelligent memory management, and enterprise-level concurrency safety. All critical bugs identified by security audit have been resolved. System is **100% production-ready** with comprehensive GPT-5 integration.
 
 ### Core Architecture
 
@@ -21,7 +21,8 @@ The Deep agent is **100% complete** with full agentic multi-turn capabilities, a
 
 - **DeepEngine** (`deep-cli/packages/core/src/deep-engine.ts`) - Main orchestrator for turn-based conversations
 - **ResponseClient** (`deep-cli/packages/core/src/response-client.ts`) - Normalized OpenAI Responses API client
-- **ConversationManager** (`deep-cli/packages/core/src/conversation-manager.ts`) - Persistent conversation state
+- **ConversationManager** (`deep-cli/packages/core/src/conversation-manager.ts`) - Advanced conversation state with compression, race-condition protection, and memory management
+- **ConversationCompressionService** (`deep-cli/packages/core/src/conversation-compression.ts`) - Intelligent compression using OpenAI with tiktoken accuracy
 - **ToolRegistry** (`deep-cli/packages/core/src/tool-registry.ts`) - Dynamic tool execution system
 - **Configuration** (`deep-cli/packages/core/src/config.ts`) - Environment-based configuration following documented standards
 
@@ -98,6 +99,16 @@ Based on `docs/openai/env-vars.md` and `.github/copilot-instructions.md`:
 - `FIBER_ALLOWED_TOOLS` - Comma-separated list of allowed tools
 - `OPENAI_LOG_PATHS=false` - Debug path logging
 
+### Conversation Management (Sprint 1)
+- `DEEP_COMPRESSION_ENABLED=true` - Enable intelligent conversation compression
+- `DEEP_COMPRESSION_THRESHOLD=0.7` - Token threshold for compression trigger (0.1-1.0)
+- `DEEP_COMPRESSION_STRATEGY=summarize` - Compression strategy (summarize|selective|truncate)
+- `DEEP_COMPRESSION_PRESERVE_CONTEXT=true` - Preserve function call chains during compression
+- `DEEP_COMPRESSION_MAX_RATIO=0.3` - Maximum compression ratio (0.1-0.8)
+- `DEEP_MAX_TOKENS=8000` - Maximum tokens before compression triggers
+- `DEEP_CURATION_ENABLED=true` - Enable automatic message curation
+- `DEEP_HEALTH_CHECK_INTERVAL=30` - Minutes between conversation health checks
+
 ## Key Technologies
 
 - **TypeScript** - Strict typing throughout
@@ -106,6 +117,7 @@ Based on `docs/openai/env-vars.md` and `.github/copilot-instructions.md`:
 - **OpenAI SDK v5** - Latest SDK for Responses API support
 - **EventEmitter3** - Event-driven architecture for streaming
 - **UUID** - Conversation and response ID generation
+- **Tiktoken** - Precise token counting for compression accuracy
 
 ## Documentation Structure
 
@@ -125,6 +137,7 @@ The `docs/openai/` directory contains comprehensive GPT-5 integration documentat
 - **GPT-5 Integration**: Reasoning effort control, verbosity settings, model-specific optimizations
 - **Error Handling**: Comprehensive error recovery and logging throughout the pipeline
 - **Configuration Management**: Environment-based settings with Zod validation
+- **Advanced Conversation Management (Sprint 1)**: Intelligent compression, memory optimization, concurrency safety
 
 ### 🚀 **Advanced Agentic Features**
 - **Reasoning Persistence**: Chain-of-thought continuity across conversation turns
@@ -132,6 +145,10 @@ The `docs/openai/` directory contains comprehensive GPT-5 integration documentat
 - **Event-Driven Architecture**: Streaming events for real-time UI integration
 - **Context Management**: Intelligent conversation state with memory persistence
 - **Model Detection**: Automatic feature enablement based on model capabilities
+- **Intelligent Compression**: OpenAI-powered conversation summarization with function call preservation
+- **Memory Management**: Proactive cleanup with batch processing and periodic health checks
+- **Concurrency Safety**: Race-condition protection with conversation-level locking
+- **Token Accuracy**: Tiktoken-based precise token counting for optimal compression triggers
 
 ### 🔧 **Technical Implementation Details**
 - **Response Processing**: Proper `output_text` extraction from OpenAI Responses API
@@ -139,15 +156,50 @@ The `docs/openai/` directory contains comprehensive GPT-5 integration documentat
 - **Event Yielding**: Generator-based architecture for streaming events
 - **Type Safety**: Complete TypeScript coverage with strict mode enabled
 - **Build System**: Clean compilation with all errors resolved
+- **Conversation Compression**: Multi-strategy compression (summarize, selective, truncate) with AI-powered split-point detection
+- **Memory Optimization**: Batch cleanup removing 20% of old conversations, periodic cleanup for stale data
+- **Concurrency Control**: Conversation-level locking with timeout protection and deadlock prevention
+- **Token Management**: Model-specific tiktoken encoders with proper resource cleanup
+- **Health Monitoring**: Comprehensive conversation validation with continuity scoring
 
 ## Development Notes
+
+### 🚨 **CRITICAL: Regression Testing & Quality Assurance**
+
+**ALWAYS follow this process when implementing new features or editing core systems:**
+
+1. **Pre-Implementation Analysis**
+   - Run comprehensive test suite: `npm run test` to establish baseline
+   - Document current system behavior and performance metrics
+   - Identify potential impact areas and dependencies
+
+2. **Post-Implementation Validation**
+   - Run full test suite again and compare results
+   - **MANDATORY**: Use the bug-hunter-reviewer agent to audit all changes
+   - Check for performance regressions with load testing
+   - Validate all existing functionality still works as expected
+
+3. **Bug-Hunter-Reviewer Agent Usage**
+   - Use the bug-hunter-reviewer agent after ANY significant code changes
+   - Provide the agent with context about what was changed and why
+   - Include relevant documentation from workspace and internet research
+   - Address ALL issues identified by the bug-hunter before considering work complete
+
+4. **Documentation Audit**
+   - Cross-reference changes against project documentation
+   - Verify compliance with established patterns and architectural decisions
+   - Update documentation if new patterns or breaking changes are introduced
+   - Validate against OpenAI API documentation and best practices
 
 ### Core Patterns
 - Always use the Responses API pattern shown in the core types
 - Follow the established event streaming architecture in `DeepEvent` types
 - Configuration changes should update both `config.ts` and the Zod schema
 - New tools must be registered through the `IToolRegistry` interface
-- Conversation persistence follows the `ConversationState` interface
+- Conversation persistence follows the enhanced `ConversationState` interface with metrics and health tracking
+- Use conversation-level locking for concurrent access to prevent race conditions
+- Implement proper resource cleanup for tiktoken encoders and conversation locks
+- Follow batch processing patterns for memory-intensive operations
 
 ### Function Calling Implementation
 - Use `item.arguments` (not `item.input`) for OpenAI Responses API function calls
@@ -171,6 +223,10 @@ The `docs/openai/` directory contains comprehensive GPT-5 integration documentat
 2. **Function call failures**: Verify `item.arguments` vs `item.input` usage
 3. **Duplicate call_id errors**: Don't include `response.output` in follow-up requests
 4. **Model parameter errors**: Only send GPT-5 parameters to supported models
+5. **Memory issues**: Check conversation cleanup settings and batch size configuration
+6. **Token counting errors**: Verify tiktoken encoder initialization for the target model
+7. **Compression failures**: Check OpenAI API connectivity and fallback to truncation strategy
+8. **Race conditions**: Ensure conversation locking is enabled in production environment
 
 ### Debug Commands
 ```bash

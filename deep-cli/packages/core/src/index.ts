@@ -4,6 +4,7 @@ export * from './config.js'
 export * from './deep-engine.js'
 export * from './response-client.js'
 export * from './conversation-manager.js'
+export * from './conversation-compression.js'
 export * from './tool-registry.js'
 export * from './turn.js'
 

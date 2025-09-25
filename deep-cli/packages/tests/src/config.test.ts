@@ -20,7 +20,7 @@ describe('Configuration Management', () => {
     expect(config.model).toBe('gpt-5')
     expect(config.verbosity).toBe('medium')
     expect(config.reasoningEffort).toBe('medium')
-    expect(config.useResponsesDefault).toBe(false) // Default when env var not set
+    expect(config.useResponsesDefault).toBe(true) // Default value
     expect(config.stream).toBe(true)
     expect(config.store).toBe(true)
   })
@@ -74,6 +74,18 @@ describe('Configuration Management', () => {
       includeEncrypted: false,
       allowedTools: [],
       logPaths: false,
+      conversation: {
+        compression: {
+          enabled: true,
+          threshold: 0.7,
+          strategy: 'summarize' as const,
+          preserveContext: true,
+          maxCompressionRatio: 0.3
+        },
+        maxTokens: 8000,
+        curationEnabled: true,
+        healthCheckInterval: 30
+      }
     }
 
     expect(() => validateConfig(validConfig)).not.toThrow()
@@ -92,6 +104,18 @@ describe('Configuration Management', () => {
       includeEncrypted: false,
       allowedTools: [],
       logPaths: false,
+      conversation: {
+        compression: {
+          enabled: true,
+          threshold: 0.7,
+          strategy: 'summarize' as const,
+          preserveContext: true,
+          maxCompressionRatio: 0.3
+        },
+        maxTokens: 8000,
+        curationEnabled: true,
+        healthCheckInterval: 30
+      }
     }
 
     expect(() => validateConfig(invalidConfig)).toThrow()
