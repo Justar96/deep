@@ -1,0 +1,35 @@
+{
+  "name": "@deep-agent/monorepo",
+  "version": "1.0.0",
+  "description": "Deep - AI agent using OpenAI Responses API exclusively for multi-turn conversations",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "dev": "npm run dev --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "format": "prettier --write .",
+    "clean": "rimraf packages/*/dist packages/*/node_modules",
+    "typecheck": "tsc --noEmit --composite false",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "npm run build && changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.1",
+    "@types/node": "^24.5.2",
+    "eslint": "^9.4.0",
+    "prettier": "^3.2.5",
+    "rimraf": "^5.0.5",
+    "tsx": "^4.7.0",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
