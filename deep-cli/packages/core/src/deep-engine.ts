@@ -51,11 +51,7 @@ export class DeepEngine implements IDeepEngine {
       this.conversationManager
     )
 
-    // Subscribe to turn events and forward them
-    turn.on('event', (event: DeepEvent) => {
-      // This will be yielded in the generator
-    })
-
+    // Directly yield events from turn execution (no need for separate event subscription)
     for await (const event of turn.run()) {
       yield event
     }

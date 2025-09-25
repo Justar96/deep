@@ -47,35 +47,9 @@ export class BasicToolRegistry implements IToolRegistry {
   }
 
   private initializeDefaultTools(): void {
-    // Web search tool (trusted)
-    this.registerTool(
-      { type: 'web_search' },
-      async (input: string) => {
-        // OpenAI handles web search natively in Responses API
-        return `Web search executed: ${input}`
-      },
-      true
-    )
-
-    // File search tool (trusted)
-    this.registerTool(
-      { type: 'file_search' },
-      async (input: string) => {
-        // OpenAI handles file search natively in Responses API
-        return `File search executed: ${input}`
-      },
-      true
-    )
-
-    // Code interpreter tool (trusted)
-    this.registerTool(
-      { type: 'code_interpreter' },
-      async (input: string) => {
-        // OpenAI handles code interpreter natively in Responses API
-        return `Code interpreter executed: ${input}`
-      },
-      true
-    )
+    // Note: Native tools like web_search, file_search, code_interpreter are handled
+    // directly by OpenAI and don't need custom executor functions in our registry.
+    // We only register custom function tools that we implement ourselves.
 
     // Custom function example
     this.registerTool(

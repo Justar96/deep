@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "mcp__ide__getDiagnostics"
+    ],
+    "deny": [],
+    "ask": [],
+    "additionalDirectories": [
+      "D:\\_Project\\example\\gemini-cli-main"
+    ]
+  }
+}

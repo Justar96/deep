@@ -48,8 +48,9 @@ program
       
       console.log(chalk.green('✅ Deep agent initialized successfully!'))
       console.log(chalk.gray('Type "exit" or "quit" to end the session.\\n'))
-      
+
       let conversationId = options.conversation
+      let lastResponseId: string | undefined
       
       while (true) {
         const { input } = await inquirer.prompt([
@@ -79,7 +80,11 @@ program
             }
             
             if (event.type === 'turn_complete') {
-              conversationId = event.data.responseId // Use response ID as conversation reference
+              lastResponseId = event.data.responseId
+              // Keep conversationId consistent; only generate new one if none exists
+              if (!conversationId) {
+                conversationId = lastResponseId
+              }
             }
           }
           

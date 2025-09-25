@@ -82,7 +82,16 @@ describe('Configuration Management', () => {
   it('should throw on invalid configuration', () => {
     const invalidConfig = {
       apiKey: '', // Empty API key should fail
+      model: 'gpt-5',
       verbosity: 'invalid' as any,
+      reasoningEffort: 'medium' as const,
+      useResponsesDefault: true,
+      stream: true,
+      store: true,
+      enableSummary: false,
+      includeEncrypted: false,
+      allowedTools: [],
+      logPaths: false,
     }
 
     expect(() => validateConfig(invalidConfig)).toThrow()

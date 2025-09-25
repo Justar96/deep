@@ -39,19 +39,29 @@ export class OpenAIResponseClient implements IResponseClient {
   async *stream(params: any): AsyncIterable<any> {
     try {
       const enhancedParams = { ...this.enhanceParams(params), stream: true }
-      
+
       if (this.config.logPaths) {
         console.log('[ResponseClient] Streaming parameters:', JSON.stringify(enhancedParams, null, 2))
       }
-      
+
       // Use the real OpenAI Responses API streaming
       const stream = await this.client.responses.create(enhancedParams)
-      
-      for await (const event of stream) {
-        if (this.config.logPaths) {
-          console.log('[ResponseClient] Stream event type:', (event as any).type)
+
+      // For streaming responses, OpenAI SDK returns an async iterable
+      // For non-streaming, it returns a Response object directly
+      if (enhancedParams.stream && stream && typeof (stream as any)[Symbol.asyncIterator] === 'function') {
+        for await (const event of stream as unknown as AsyncIterable<any>) {
+          if (this.config.logPaths) {
+            console.log('[ResponseClient] Stream event type:', (event as any).type)
+          }
+          yield event
         }
-        yield event
+      } else {
+        // Non-streaming response - yield the complete response
+        if (this.config.logPaths) {
+          console.log('[ResponseClient] Non-streaming response')
+        }
+        yield stream
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -85,14 +95,16 @@ export class OpenAIResponseClient implements IResponseClient {
       store: this.config.store,
     }
 
-    // Add GPT-5 steering parameters
-    if (!params.text) {
+    // Add GPT-5 steering parameters only for GPT-5 models
+    const isGPT5Model = enhanced.model?.startsWith('gpt-5')
+
+    if (!params.text && isGPT5Model) {
       enhanced.text = {
         verbosity: this.config.verbosity,
       }
     }
 
-    if (!params.reasoning) {
+    if (!params.reasoning && isGPT5Model) {
       enhanced.reasoning = {
         effort: this.config.reasoningEffort,
       }

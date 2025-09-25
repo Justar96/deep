@@ -5,7 +5,7 @@ import type { OpenAI } from 'openai'
 export interface DeepConfig {
   // Core API settings
   apiKey: string
-  baseUrl?: string
+  baseUrl?: string | null | undefined
   model: string
   
   // Responses API behavior

@@ -68,14 +68,14 @@ export class Turn extends EventEmitter<{ event: (event: DeepEvent) => void }> {
       yield { type: 'response_start', data: { responseId: response.id } }
 
       // Process the response items
-      await this.processResponse(response, input)
+      yield* this.processResponse(response, input)
 
       // Continue tool calling loop until no more tool calls
       while (this.hasToolCalls(response)) {
         const toolCallResults = await this.executeToolCalls(response)
         
-        // Add tool results to input
-        input.push(...response.output, ...toolCallResults)
+        // Add tool results to input (don't add response.output as it already contains function calls)
+        input.push(...toolCallResults)
 
         // Follow-up request with tool results
         response = await this.responseClient.followup({
@@ -85,7 +85,7 @@ export class Turn extends EventEmitter<{ event: (event: DeepEvent) => void }> {
           ...(this.context.maxOutputTokens && { maxOutputTokens: this.context.maxOutputTokens }),
         })
 
-        await this.processResponse(response, input)
+        yield* this.processResponse(response, input)
       }
 
       // Update conversation state
@@ -115,43 +115,43 @@ export class Turn extends EventEmitter<{ event: (event: DeepEvent) => void }> {
     }
   }
 
-  private async processResponse(
+  private async *processResponse(
     response: any,
     currentInput: any[]
-  ): Promise<void> {
+  ): AsyncGenerator<DeepEvent> {
     for (const item of response.output) {
       switch (item.type) {
         case 'message':
-          // Extract text content
+          // Extract text content from OpenAI Responses API format
           for (const content of item.content || []) {
-            if (content.type === 'output_text') {
-              this.emit('event', { 
-                type: 'content_delta', 
-                data: { text: content.text } 
-              })
+            if (content.type === 'output_text' || content.type === 'text') {
+              yield {
+                type: 'content_delta',
+                data: { text: content.text }
+              }
             }
           }
           break
 
         case 'function_call':
-          this.emit('event', { 
-            type: 'tool_call', 
-            data: { 
-              name: item.name, 
-              input: item.input, 
-              callId: item.call_id 
-            } 
-          })
+          yield {
+            type: 'tool_call',
+            data: {
+              name: item.name,
+              input: item.arguments || item.input,
+              callId: item.call_id
+            }
+          }
           break
 
         case 'reasoning':
           // Handle reasoning items if summary is available
           if (item.summary && item.summary.length > 0) {
             const summaryText = item.summary.map((s: any) => s.content).join(' ')
-            this.emit('event', { 
-              type: 'reasoning_summary', 
-              data: { summary: summaryText } 
-            })
+            yield {
+              type: 'reasoning_summary',
+              data: { summary: summaryText }
+            }
           }
           break
       }
@@ -172,7 +172,7 @@ export class Turn extends EventEmitter<{ event: (event: DeepEvent) => void }> {
         try {
           const result = await this.toolRegistry.executeToolCall(
             item.name,
-            item.input,
+            item.arguments || item.input,
             item.call_id
           )
 
