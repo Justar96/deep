@@ -28,6 +28,19 @@ const ToolConfigSchema = z.object({
   executionTimeoutMs: z.number().positive().default(60000),
 })
 
+const ContextConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  updateStrategy: z.enum(['delta', 'full', 'smart']).default('smart'),
+  compressionEnabled: z.boolean().default(true),
+  compressionThreshold: z.number().positive().default(4000),
+  maxContextSize: z.number().positive().default(8000),
+  refreshIntervalMs: z.number().positive().default(30000),
+  trackFileChanges: z.boolean().default(true),
+  trackCursorPosition: z.boolean().default(true),
+  trackGitState: z.boolean().default(true),
+  relevanceThreshold: z.number().min(0).max(1).default(0.5),
+})
+
 const ConfigSchema = z.object({
   apiKey: z.string().min(1, 'OPENAI_API_KEY is required'),
   baseUrl: z.string().url().optional().nullable(),
@@ -43,6 +56,7 @@ const ConfigSchema = z.object({
   logPaths: z.boolean().default(false),
   conversation: ConversationConfigSchema,
   tools: ToolConfigSchema,
+  context: ContextConfigSchema,
 })
 
 export function loadConfig(): DeepConfig {
@@ -86,6 +100,19 @@ export function loadConfig(): DeepConfig {
       emergencyStopEnabled: process.env.DEEP_TOOL_EMERGENCY_STOP_ENABLED !== 'false',
       maxConcurrentExecutions: parseInt(process.env.DEEP_TOOL_MAX_CONCURRENT_EXECUTIONS || '5', 10),
       executionTimeoutMs: parseInt(process.env.DEEP_TOOL_EXECUTION_TIMEOUT_MS || '60000', 10),
+    },
+    // IDE Context Integration configuration (Sprint 3)
+    context: {
+      enabled: process.env.DEEP_CONTEXT_ENABLED !== 'false',
+      updateStrategy: (process.env.DEEP_CONTEXT_UPDATE_STRATEGY as 'delta' | 'full' | 'smart') || 'smart',
+      compressionEnabled: process.env.DEEP_CONTEXT_COMPRESSION_ENABLED !== 'false',
+      compressionThreshold: parseInt(process.env.DEEP_CONTEXT_COMPRESSION_THRESHOLD || '4000', 10),
+      maxContextSize: parseInt(process.env.DEEP_CONTEXT_MAX_SIZE || '8000', 10),
+      refreshIntervalMs: parseInt(process.env.DEEP_CONTEXT_REFRESH_INTERVAL_MS || '30000', 10),
+      trackFileChanges: process.env.DEEP_CONTEXT_TRACK_FILE_CHANGES !== 'false',
+      trackCursorPosition: process.env.DEEP_CONTEXT_TRACK_CURSOR_POSITION !== 'false',
+      trackGitState: process.env.DEEP_CONTEXT_TRACK_GIT_STATE !== 'false',
+      relevanceThreshold: parseFloat(process.env.DEEP_CONTEXT_RELEVANCE_THRESHOLD || '0.5'),
     },
   }
   // Override store default when encrypted is enabled

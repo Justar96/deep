@@ -56,6 +56,20 @@ export function createTestConfig(overrides: Partial<DeepConfig> = {}): DeepConfi
       maxConcurrentExecutions: 5,
       executionTimeoutMs: 60000,
     },
+
+    // IDE Context Integration configuration (Sprint 3)
+    context: {
+      enabled: true,
+      updateStrategy: 'smart',
+      compressionEnabled: true,
+      compressionThreshold: 4000,
+      maxContextSize: 8000,
+      refreshIntervalMs: 30000,
+      trackFileChanges: true,
+      trackCursorPosition: true,
+      trackGitState: true,
+      relevanceThreshold: 0.5,
+    },
   }
 
   return { ...baseConfig, ...overrides }
@@ -88,6 +102,18 @@ export function createMinimalTestConfig(overrides: Partial<DeepConfig> = {}): De
       emergencyStopEnabled: false,
       maxConcurrentExecutions: 1,
       executionTimeoutMs: 30000,
+    },
+    context: {
+      enabled: false,
+      updateStrategy: 'smart',
+      compressionEnabled: false,
+      compressionThreshold: 4000,
+      maxContextSize: 8000,
+      refreshIntervalMs: 30000,
+      trackFileChanges: false,
+      trackCursorPosition: false,
+      trackGitState: false,
+      relevanceThreshold: 0.5,
     },
     ...overrides,
   })

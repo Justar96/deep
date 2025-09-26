@@ -8,6 +8,7 @@ import type {
   DeepConfig,
   TurnContext 
 } from './types.js'
+import type { Tool } from './types/index.js'
 import { OpenAIResponseClient } from './response-client.js'
 import { MemoryConversationManager } from './conversation-manager.js'
 import { BaseToolRegistryWrapper } from './base-tool-registry.js'
@@ -81,7 +82,7 @@ export class DeepEngine implements IDeepEngine {
     yield* this.processMessage(input, conversationId)
   }
 
-  private getFilteredTools(): any[] {
+  private getFilteredTools(): Tool[] {
     const trusted = true // TODO: Implement workspace trust detection
     const availableTools = this.toolRegistry.getTools(trusted)
     
@@ -121,7 +122,7 @@ export class DeepEngine implements IDeepEngine {
 
   // Enhanced tool management (Sprint 2)
   registerTool(
-    tool: any,
+    tool: Tool,
     executor: (input: string, callId: string) => Promise<string>,
     trusted: boolean = true
   ): void {
@@ -129,11 +130,11 @@ export class DeepEngine implements IDeepEngine {
   }
 
   // Sprint 2: Enhanced tool management methods
-  getToolAuditTrail(limit?: number): any[] {
+  getToolAuditTrail(limit?: number): import('./types.js').ToolAuditEntry[] {
     return this.toolRegistry.getAuditTrail(limit)
   }
 
-  getToolSecurityReport(): any {
+  getToolSecurityReport(): import('./types/index.js').ToolSecurityReport {
     return this.toolRegistry.getSecurityReport()
   }
 
@@ -145,16 +146,16 @@ export class DeepEngine implements IDeepEngine {
     this.toolRegistry.resetEmergencyStop()
   }
 
-  getActiveToolExecutions(): any[] {
+  getActiveToolExecutions(): import('./types/index.js').ActiveExecution[] {
     return this.toolRegistry.getActiveExecutions()
   }
 
   approveToolRequest(requestId: string, reason?: string): boolean {
-    return (this.toolRegistry as any).confirmationBus?.approveRequest(requestId, reason) || false
+    return (this.toolRegistry as unknown as { confirmationBus?: { approveRequest(id: string, reason?: string): boolean } }).confirmationBus?.approveRequest(requestId, reason) || false
   }
 
   denyToolRequest(requestId: string, reason?: string): boolean {
-    return (this.toolRegistry as any).confirmationBus?.denyRequest(requestId, reason) || false
+    return (this.toolRegistry as unknown as { confirmationBus?: { denyRequest(id: string, reason?: string): boolean } }).confirmationBus?.denyRequest(requestId, reason) || false
   }
 
   // Health check

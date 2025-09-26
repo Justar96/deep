@@ -224,7 +224,9 @@ describe('Turn', () => {
         {
           type: 'message',
           role: 'user',
-          content: [{ type: 'input_text', text: 'Hello, how are you?' }]
+          content: [{ type: 'input_text', text: 'Hello, how are you?' }],
+          id: expect.any(String),
+          status: 'completed'
         }
       ]
 

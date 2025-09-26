@@ -6,19 +6,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **Deep AI agent** monorepo built around the OpenAI Responses API for multi-turn agentic conversations. The project follows GPT-5 best practices and maintains comprehensive documentation for OpenAI integrations.
 
-### ✅ **PRODUCTION STATUS: SPRINT 2 COMPLETE + PERFECT TEST SUITE**
+### ✅ **PRODUCTION STATUS: SPRINT 3 COMPLETE + PERFECT TEST SUITE**
 
-The Deep agent has completed **Sprint 2: Enhanced Tool System** and achieved **PERFECT TEST COMPLETION** with comprehensive architecture standardization. The project now features a clean monorepo structure, standardized configurations, and production-ready build systems alongside sophisticated tool confirmation workflows and enterprise-grade capabilities.
+The Deep agent has completed **Sprint 3: IDE Context Integration** and achieved **PERFECT TEST COMPLETION** with comprehensive IDE context awareness and intelligent workspace integration. The project now features sophisticated context management, real-time IDE state tracking, and intelligent context compression alongside all previous enterprise-grade capabilities.
 
 **Latest Achievements:**
 - ✅ **Architecture Standardization**: Transformed from nested structure to clean flat monorepo following best practices
 - ✅ **Sprint 1**: Advanced Conversation Management with intelligent compression and memory optimization
 - ✅ **Sprint 2**: Enhanced Tool System with confirmation workflows, risk assessment, and audit trails
-- ✅ **PERFECT TEST SUITE**: 297/297 tests passing (100% success rate) with zero errors or warnings
+- ✅ **Sprint 3**: IDE Context Integration with intelligent workspace awareness and context management
+- ✅ **PERFECT TEST SUITE**: 374/374 tests passing (100% success rate) with zero errors or warnings
 - ✅ **Enterprise Security**: Tool confirmation system with risk-based approval workflows
 - ✅ **Production Safety**: Emergency stops, impact analysis, and comprehensive audit logging
 - ✅ **Quality Assurance**: Bulletproof testing framework with comprehensive validation
 - ✅ **Cross-Platform**: Windows/Unix compatibility with standardized build scripts
+- ✅ **IDE Integration**: Real-time context awareness with VSCode, Cursor, and LSP support
 
 ### Core Architecture
 
@@ -32,13 +34,19 @@ The Deep agent has completed **Sprint 2: Enhanced Tool System** and achieved **P
 ### Key Components
 
 - **DeepEngine** (`packages/core/src/deep-engine.ts`) - Main orchestrator with enhanced tool management capabilities
+- **ContextAwareDeepEngine** (`packages/core/src/context-aware-engine.ts`) - **NEW**: IDE-aware engine with context integration
 - **ResponseClient** (`packages/core/src/response-client.ts`) - Normalized OpenAI Responses API client
 - **ConversationManager** (`packages/core/src/conversation-manager.ts`) - Advanced conversation state with compression and memory management
-- **ToolRegistry** (`packages/core/src/tool-registry.ts`) - **NEW**: Enterprise tool system with confirmations and audit trails
-- **ToolConfirmationBus** (`packages/core/src/tool-confirmation-bus.ts`) - **NEW**: Message bus for async user approvals
-- **ToolImpactAnalyzer** (`packages/core/src/tool-impact-analyzer.ts`) - **NEW**: Risk assessment and impact analysis
-- **ToolAuditTrail** (`packages/core/src/tool-audit-trail.ts`) - **NEW**: Comprehensive audit logging system
-- **Configuration** (`packages/core/src/config.ts`) - Enhanced with Sprint 2 tool system settings
+- **ContextStore** (`packages/core/src/context/context-store.ts`) - **NEW**: IDE context management and tracking
+- **GitManager** (`packages/core/src/context/git-manager.ts`) - **NEW**: Real-time Git state monitoring and change detection
+- **FileWatcher** (`packages/core/src/context/file-watcher.ts`) - **NEW**: File system change tracking with debouncing
+- **ContextAnalyzer** (`packages/core/src/context/context-analyzer.ts`) - **NEW**: Intelligent context relevance analysis
+- **ContextCompressor** (`packages/core/src/context/context-compressor.ts`) - **NEW**: Smart context compression for large codebases
+- **ToolRegistry** (`packages/core/src/tool-registry.ts`) - Enterprise tool system with confirmations and audit trails
+- **ToolConfirmationBus** (`packages/core/src/tool-confirmation-bus.ts`) - Message bus for async user approvals
+- **ToolImpactAnalyzer** (`packages/core/src/tool-impact-analyzer.ts`) - Risk assessment and impact analysis
+- **ToolAuditTrail** (`packages/core/src/tool-audit-trail.ts`) - Comprehensive audit logging system
+- **Configuration** (`packages/core/src/config.ts`) - Enhanced with Sprint 3 context system settings
 
 ### API Strategy: Responses API First
 
@@ -136,6 +144,18 @@ Based on `docs/openai/env-vars.md` and `.github/copilot-instructions.md`:
 - `DEEP_TOOL_MAX_CONCURRENT_EXECUTIONS=5` - Maximum concurrent tool executions
 - `DEEP_TOOL_EXECUTION_TIMEOUT_MS=60000` - Individual tool execution timeout
 
+### IDE Context Integration (Sprint 3)
+- `DEEP_CONTEXT_ENABLED=true` - Enable IDE context integration and awareness
+- `DEEP_CONTEXT_UPDATE_STRATEGY=smart` - Context update strategy (delta|full|smart)
+- `DEEP_CONTEXT_COMPRESSION_ENABLED=true` - Enable intelligent context compression
+- `DEEP_CONTEXT_COMPRESSION_THRESHOLD=4000` - Token threshold for context compression
+- `DEEP_CONTEXT_MAX_SIZE=8000` - Maximum context size in tokens
+- `DEEP_CONTEXT_REFRESH_INTERVAL_MS=30000` - Auto-refresh interval for project state
+- `DEEP_CONTEXT_TRACK_FILE_CHANGES=true` - Enable file system change tracking
+- `DEEP_CONTEXT_TRACK_CURSOR_POSITION=true` - Enable cursor position tracking
+- `DEEP_CONTEXT_TRACK_GIT_STATE=true` - Enable Git state monitoring
+- `DEEP_CONTEXT_RELEVANCE_THRESHOLD=0.5` - Relevance filtering threshold (0.0-1.0)
+
 ## Key Technologies
 
 - **TypeScript** - Strict typing throughout
@@ -167,22 +187,29 @@ The `docs/openai/` directory contains comprehensive GPT-5 integration documentat
 - **Configuration Management**: Environment-based settings with Zod validation
 - **Advanced Conversation Management (Sprint 1)**: Intelligent compression, memory optimization, concurrency safety
 - **Enhanced Tool System (Sprint 2)**: Tool confirmation workflows, risk assessment, audit trails, emergency stops
-- **Perfect Test Suite**: 297 tests with 100% success rate ensuring bulletproof production reliability
+- **IDE Context Integration (Sprint 3)**: Real-time workspace awareness, intelligent context compression, Git state tracking
+- **Perfect Test Suite**: 374 tests with 100% success rate ensuring bulletproof production reliability
 
 ### 🚀 **Advanced Agentic Features**
 - **Reasoning Persistence**: Chain-of-thought continuity across conversation turns
 - **Enhanced Tool Registry**: Enterprise-grade tool system with confirmations and risk assessment
-- **Event-Driven Architecture**: Streaming events for real-time UI integration with 7 new tool events
+- **Event-Driven Architecture**: Streaming events for real-time UI integration with comprehensive event types
 - **Context Management**: Intelligent conversation state with memory persistence
 - **Model Detection**: Automatic feature enablement based on model capabilities
 - **Intelligent Compression**: OpenAI-powered conversation summarization with function call preservation
 - **Memory Management**: Proactive cleanup with batch processing and periodic health checks
 - **Concurrency Safety**: Race-condition protection with conversation-level locking
 - **Token Accuracy**: Tiktoken-based precise token counting for optimal compression triggers
-- **Tool Confirmation System**: **NEW**: Message bus architecture for async user approvals
-- **Risk Assessment**: **NEW**: Automated analysis of tool operations and impact
-- **Audit Trail System**: **NEW**: Comprehensive logging with security reporting
-- **Emergency Stop**: **NEW**: System-wide tool execution halt capability
+- **Tool Confirmation System**: Message bus architecture for async user approvals
+- **Risk Assessment**: Automated analysis of tool operations and impact
+- **Audit Trail System**: Comprehensive logging with security reporting
+- **Emergency Stop**: System-wide tool execution halt capability
+- **IDE Context Awareness**: **NEW**: Real-time tracking of active files, cursor position, and selected text
+- **Git State Integration**: **NEW**: Live monitoring of repository changes, branches, and commit history
+- **File System Monitoring**: **NEW**: Debounced file change detection with relevance scoring
+- **Context Compression**: **NEW**: Smart compression strategies for large codebases with relevance filtering
+- **Delta-Based Updates**: **NEW**: Efficient context updates minimizing token usage
+- **Multi-IDE Support**: **NEW**: VSCode, Cursor, and Language Server Protocol integration patterns
 
 ### 🔧 **Technical Implementation Details**
 - **Response Processing**: Proper `output_text` extraction from OpenAI Responses API

@@ -26,8 +26,8 @@ export interface ConversationCompression {
 // Smart split-point detection for preserving function call chains
 export interface SplitPointAnalysis {
   splitIndex: number
-  preservedItems: any[]
-  compressibleItems: any[]
+  preservedItems: import('./types/index.js').Item[]
+  compressibleItems: import('./types/index.js').Item[]
   reasoning: string
   confidence: number
 }
@@ -85,12 +85,26 @@ export interface DeepConfig {
     maxConcurrentExecutions: number
     executionTimeoutMs: number
   }
+
+  // IDE Context Integration configuration (Sprint 3)
+  context: {
+    enabled: boolean
+    updateStrategy: 'delta' | 'full' | 'smart'
+    compressionEnabled: boolean
+    compressionThreshold: number // Token count for context compression
+    maxContextSize: number // Maximum context tokens
+    refreshIntervalMs: number // Auto-refresh interval
+    trackFileChanges: boolean
+    trackCursorPosition: boolean
+    trackGitState: boolean
+    relevanceThreshold: number // 0-1 score for context relevance filtering
+  }
 }
 
 // Enhanced conversation state management
 export interface ConversationState {
   id: string
-  messages: any[] // Will be OpenAI response items
+  messages: import('./types/index.js').Item[] // OpenAI response items
   lastResponseId?: string
   metadata: Record<string, unknown>
   createdAt: Date
@@ -107,7 +121,7 @@ export interface TurnContext {
   conversationId: string
   userInput: string
   previousResponseId?: string
-  tools?: any[] // OpenAI tools
+  tools?: import('./types/index.js').Tool[] // OpenAI tools
   maxOutputTokens?: number
 }
 
@@ -119,7 +133,7 @@ export type DeepEvent =
   | { type: 'tool_call'; data: { name: string; input: string; callId: string } }
   | { type: 'tool_result'; data: { callId: string; output: string } }
   | { type: 'reasoning_summary'; data: { summary: string } }
-  | { type: 'turn_complete'; data: { usage: any; responseId: string } }
+  | { type: 'turn_complete'; data: { usage: import('./types/index.js').Usage; responseId: string } }
   | { type: 'error'; data: { error: string; code?: string } }
   // Enhanced Sprint 2 tool events
   | { type: 'tool_confirmation_request'; data: { confirmation: ToolConfirmation; timeoutMs: number } }
@@ -140,14 +154,14 @@ export interface IDeepEngine {
 
 // Response client interface for normalized API access
 export interface IResponseClient {
-  create(params: any): Promise<any>
-  stream(params: any): AsyncIterable<any>
+  create(params: import('./types/index.js').ResponseCreateParams): Promise<import('./types/index.js').ResponseObject>
+  stream(params: import('./types/index.js').ResponseCreateParams): AsyncIterable<import('./types/index.js').ResponseObject>
   followup(params: {
-    input: any[]
+    input: import('./types/index.js').Item[]
     previousResponseId: string
-    tools?: any[]
+    tools?: unknown[]
     maxOutputTokens?: number
-  }): Promise<any>
+  }): Promise<import('./types/index.js').ResponseObject>
 }
 
 // Enhanced tool confirmation system (Sprint 2)
@@ -197,8 +211,8 @@ export interface ToolSchema {
   name: string
   version: string
   description: string
-  parameters: any // JSON Schema for tool parameters
-  returnType: any // JSON Schema for return value
+  parameters: import('./types/index.js').JSONSchema // JSON Schema for tool parameters
+  returnType: import('./types/index.js').JSONSchema // JSON Schema for return value
   riskAssessment: ToolRiskAssessment
   permissions: ToolPermissions
 }
@@ -241,11 +255,11 @@ export interface ToolConfirmationRequest {
 
 // Tool registry interface for managing available tools
 export interface IToolRegistry {
-  getTools(trusted: boolean): any[]
+  getTools(trusted: boolean): import('./types/index.js').Tool[]
   executeToolCall(name: string, input: string, callId: string): Promise<string>
 
   // Enhanced Sprint 2 methods
-  validateToolSchema(tool: any): Promise<boolean>
+  validateToolSchema(tool: import('./types/index.js').Tool): Promise<boolean>
   analyzeToolImpact(toolName: string, input: string): Promise<ToolImpactAnalysis>
   requestApproval(confirmation: ToolConfirmation): Promise<boolean>
   getAuditTrail(limit?: number): ToolAuditEntry[]
@@ -256,13 +270,269 @@ export interface IToolRegistry {
 export interface IConversationManager {
   get(id: string): Promise<ConversationState | null>
   create(id: string): Promise<ConversationState>
-  update(id: string, items: any[], responseId?: string): Promise<void>
+  update(id: string, items: import('./types/index.js').Item[], responseId?: string): Promise<void>
   list(): Promise<ConversationState[]>
   delete(id: string): Promise<void>
   // New compression and curation methods
   compressConversation(id: string, strategy?: ConversationCompression['strategy']): Promise<void>
   curateConversation(id: string): Promise<void>
-  analyzeTokenUsage(messages: any[]): Promise<ConversationMetrics['tokenUsage']>
-  findSplitPoint(messages: any[]): Promise<SplitPointAnalysis>
+  analyzeTokenUsage(messages: import('./types/index.js').Item[]): Promise<ConversationMetrics['tokenUsage']>
+  findSplitPoint(messages: import('./types/index.js').Item[]): Promise<SplitPointAnalysis>
   validateConversationHealth(id: string): Promise<ConversationHealth>
+}
+
+// ================================
+// Sprint 3: IDE Context Integration
+// ================================
+
+// Git state context for repository awareness
+export interface GitContext {
+  branch: string
+  status: 'clean' | 'dirty' | 'unknown'
+  recentCommits: GitCommit[]
+  stagedFiles: string[]
+  modifiedFiles: string[]
+  untrackedFiles: string[]
+  remoteUrl?: string
+  lastUpdate: Date
+}
+
+// Git commit information
+export interface GitCommit {
+  hash: string
+  message: string
+  author: string
+  date: Date
+  filesChanged: string[]
+}
+
+// File change tracking for delta updates
+export interface FileChange {
+  filePath: string
+  changeType: 'created' | 'modified' | 'deleted' | 'renamed'
+  oldPath?: string // For renamed files
+  timestamp: Date
+  lineChanges?: {
+    added: number
+    removed: number
+    modified: number
+  }
+  relevanceScore?: number // 0-1 score for context filtering
+}
+
+// Core IDE context state
+export interface IDEContext {
+  activeFile?: string
+  cursorPosition?: {
+    line: number
+    column: number
+  }
+  selectedText?: {
+    content: string
+    startLine: number
+    endLine: number
+    startColumn: number
+    endColumn: number
+  }
+  openFiles: string[]
+  projectRoot: string
+  gitState: GitContext
+  recentChanges: FileChange[]
+  workspaceSettings: WorkspaceSettings
+  languageServerInfo?: LanguageServerInfo
+  lastUpdate: Date
+  tokenCount: number // Estimated token count for this context
+}
+
+// Workspace configuration and settings
+export interface WorkspaceSettings {
+  extensions: string[]
+  language: string
+  formatter?: string
+  linter?: string
+  testFramework?: string
+  buildCommand?: string
+  packageManager?: 'npm' | 'yarn' | 'pnpm' | 'bun'
+  projectType?: 'node' | 'react' | 'vue' | 'python' | 'rust' | 'go' | 'other'
+}
+
+// Language Server Protocol integration
+export interface LanguageServerInfo {
+  name: string
+  version: string
+  capabilities: string[]
+  diagnostics: Diagnostic[]
+  symbols: Symbol[]
+  lastSync: Date
+}
+
+// Diagnostic information from LSP
+export interface Diagnostic {
+  filePath: string
+  line: number
+  column: number
+  severity: 'error' | 'warning' | 'info' | 'hint'
+  message: string
+  source?: string
+  code?: string | number
+}
+
+// Symbol information from LSP
+export interface Symbol {
+  name: string
+  kind: string
+  filePath: string
+  line: number
+  column: number
+  containerName?: string
+}
+
+// Delta-based context updates for efficient token usage
+export interface ContextDelta {
+  added: Partial<IDEContext>
+  removed: string[] // Keys that were removed
+  modified: Partial<IDEContext>
+  timestamp: Date
+  tokenDelta: number // Change in token count
+  reason: string // Reason for the update (file_change, cursor_move, etc.)
+}
+
+// Context relevance analysis for intelligent filtering
+export interface ContextRelevance {
+  filePath: string
+  relevanceScore: number // 0-1 score
+  factors: {
+    recentlyModified: boolean
+    currentlyOpen: boolean
+    relatedToActiveFile: boolean
+    containsErrors: boolean
+    referencedInConversation: boolean
+  }
+  lastAccessed: Date
+}
+
+// Context compression for large codebases
+export interface ContextCompression {
+  enabled: boolean
+  strategy: 'summarize' | 'filter' | 'truncate'
+  threshold: number // Token threshold for compression
+  preserveActive: boolean // Always preserve active file context
+  maxRelevantFiles: number // Maximum number of files to include
+}
+
+// Context store interface for managing IDE state
+export interface IContextStore {
+  // Core context management
+  getCurrentContext(): Promise<IDEContext>
+  updateContext(delta: ContextDelta): Promise<void>
+  setActiveFile(filePath: string): Promise<void>
+  setCursorPosition(line: number, column: number): Promise<void>
+  setSelectedText(content: string, start: {line: number, column: number}, end: {line: number, column: number}): Promise<void>
+
+  // File and project tracking
+  addOpenFile(filePath: string): Promise<void>
+  removeOpenFile(filePath: string): Promise<void>
+  trackFileChange(change: FileChange): Promise<void>
+  refreshProjectStructure(): Promise<void>
+
+  // Git integration
+  updateGitState(): Promise<void>
+  getGitHistory(limit?: number): Promise<GitCommit[]>
+
+  // Context optimization
+  compressContext(strategy?: ContextCompression['strategy']): Promise<IDEContext>
+  filterRelevantContext(threshold?: number): Promise<IDEContext>
+  analyzeRelevance(filePaths: string[]): Promise<ContextRelevance[]>
+
+  // Integration support
+  syncWithLanguageServer(): Promise<void>
+  refreshWorkspaceSettings(): Promise<void>
+
+  // Event system
+  onContextChange(callback: (delta: ContextDelta) => void): void
+  onFileChange(callback: (change: FileChange) => void): void
+  onGitStateChange(callback: (gitState: GitContext) => void): void
+}
+
+// Context integration patterns for different editors
+export interface IDEIntegration {
+  type: 'vscode' | 'cursor' | 'vim' | 'emacs' | 'intellij' | 'generic'
+  capabilities: {
+    fileWatching: boolean
+    cursorTracking: boolean
+    selectionTracking: boolean
+    languageServer: boolean
+    gitIntegration: boolean
+    diagnostics: boolean
+  }
+
+  // Integration methods
+  initialize(): Promise<void>
+  disconnect(): Promise<void>
+  isConnected(): boolean
+
+  // Context synchronization
+  syncContext(): Promise<IDEContext>
+  watchFiles(patterns: string[]): Promise<void>
+  unwatchFiles(): Promise<void>
+
+  // Event handlers
+  onActiveFileChange(callback: (filePath: string) => void): void
+  onCursorMove(callback: (line: number, column: number) => void): void
+  onSelectionChange(callback: (selection: IDEContext['selectedText']) => void): void
+  onFileCreate(callback: (filePath: string) => void): void
+  onFileModify(callback: (filePath: string) => void): void
+  onFileDelete(callback: (filePath: string) => void): void
+}
+
+// Extended conversation state with context integration
+export interface ContextAwareConversationState extends ConversationState {
+  context?: IDEContext
+  contextHistory: ContextDelta[]
+  relevanceAnalysis?: ContextRelevance[]
+}
+
+// Enhanced turn context with IDE awareness
+export interface ContextAwareTurnContext extends TurnContext {
+  ideContext?: IDEContext
+  contextCompressionEnabled?: boolean
+  relevanceThreshold?: number
+}
+
+// Context-aware deep events for streaming
+export type ContextEvent =
+  | { type: 'context_update'; data: { delta: ContextDelta; context: IDEContext } }
+  | { type: 'context_compression'; data: { originalTokens: number; compressedTokens: number; strategy: string } }
+  | { type: 'file_change_detected'; data: { change: FileChange; relevance: ContextRelevance } }
+  | { type: 'git_state_change'; data: { gitState: GitContext; changedFiles: string[] } }
+  | { type: 'active_file_change'; data: { previousFile?: string; newFile: string } }
+  | { type: 'cursor_position_change'; data: { line: number; column: number; file: string } }
+  | { type: 'context_relevance_analysis'; data: { analysis: ContextRelevance[]; threshold: number } }
+
+// Enhanced DeepEvent with context integration
+export type EnhancedDeepEvent = DeepEvent | ContextEvent
+
+// Context-aware engine interface
+export interface IContextAwareDeepEngine extends IDeepEngine {
+  // Context management
+  setContextStore(contextStore: IContextStore): void
+  getContextStore(): IContextStore | null
+  updateIDEContext(delta: ContextDelta): Promise<void>
+  getIDEContext(): Promise<IDEContext | null>
+
+  // Context-aware processing
+  processMessageWithContext(
+    input: string,
+    conversationId?: string,
+    contextOptions?: {
+      includeContext?: boolean
+      compressionStrategy?: ContextCompression['strategy']
+      relevanceThreshold?: number
+    }
+  ): AsyncGenerator<EnhancedDeepEvent>
+
+  // Integration support
+  connectIDE(integration: IDEIntegration): Promise<void>
+  disconnectIDE(): Promise<void>
+  getIDEIntegration(): IDEIntegration | null
 }

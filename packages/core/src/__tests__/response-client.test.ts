@@ -250,7 +250,7 @@ describe('OpenAIResponseClient', () => {
 
       const mockAsyncIterable = {
         [Symbol.asyncIterator]: async function* () {
-          yield { type: 'response.content.text.delta', text: 'Hello' }
+          yield { object: 'response.content.text.delta', text: 'Hello' }
         }
       }
 

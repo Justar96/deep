@@ -7,6 +7,7 @@ import type {
   IToolRegistry, 
   IConversationManager 
 } from './types.js'
+import type { ResponseObject, Item, FunctionCallOutputItem } from './types/index.js'
 
 export class Turn extends EventEmitter<{ event: (event: DeepEvent) => void }> {
   private context: TurnContext
@@ -41,17 +42,19 @@ export class Turn extends EventEmitter<{ event: (event: DeepEvent) => void }> {
       }
 
       // Build input from conversation history and new user message
-      const input: any[] = [
+      const input: Item[] = [
         ...conversation.messages,
         {
           type: 'message',
           role: 'user',
           content: [{ type: 'input_text', text: this.context.userInput }],
+          id: `user_${Date.now()}`,
+          status: 'completed'
         },
       ]
 
       // Initial request parameters
-      let requestParams: any = {
+      const requestParams = {
         model: 'gpt-4o', // Will be overridden by client config
         input,
         tools: this.context.tools || this.toolRegistry.getTools(true),
@@ -116,8 +119,8 @@ export class Turn extends EventEmitter<{ event: (event: DeepEvent) => void }> {
   }
 
   private async *processResponse(
-    response: any,
-    currentInput: any[]
+    response: ResponseObject,
+    _currentInput: Item[]
   ): AsyncGenerator<DeepEvent> {
     for (const item of response.output) {
       switch (item.type) {
@@ -147,7 +150,7 @@ export class Turn extends EventEmitter<{ event: (event: DeepEvent) => void }> {
         case 'reasoning':
           // Handle reasoning items if summary is available
           if (item.summary && item.summary.length > 0) {
-            const summaryText = item.summary.map((s: any) => s.content).join(' ')
+            const summaryText = item.summary.map(s => s.content).join(' ')
             yield {
               type: 'reasoning_summary',
               data: { summary: summaryText }
@@ -158,14 +161,14 @@ export class Turn extends EventEmitter<{ event: (event: DeepEvent) => void }> {
     }
   }
 
-  private hasToolCalls(response: any): boolean {
-    return response.output.some((item: any) => item.type === 'function_call')
+  private hasToolCalls(response: ResponseObject): boolean {
+    return response.output.some(item => item.type === 'function_call')
   }
 
   private async executeToolCalls(
-    response: any
-  ): Promise<any[]> {
-    const toolResults: any[] = []
+    response: ResponseObject
+  ): Promise<FunctionCallOutputItem[]> {
+    const toolResults: FunctionCallOutputItem[] = []
 
     for (const item of response.output) {
       if (item.type === 'function_call') {
@@ -176,7 +179,7 @@ export class Turn extends EventEmitter<{ event: (event: DeepEvent) => void }> {
             item.call_id
           )
 
-          const toolResult: any = {
+          const toolResult: FunctionCallOutputItem = {
             type: 'function_call_output',
             call_id: item.call_id,
             output: result,
@@ -195,7 +198,7 @@ export class Turn extends EventEmitter<{ event: (event: DeepEvent) => void }> {
         } catch (error) {
           const errorMsg = error instanceof Error ? error.message : 'Tool execution failed'
           
-          const toolResult: any = {
+          const toolResult: FunctionCallOutputItem = {
             type: 'function_call_output',
             call_id: item.call_id,
             output: `Error: ${errorMsg}`,

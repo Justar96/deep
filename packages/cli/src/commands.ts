@@ -4,9 +4,10 @@ import ora from 'ora'
 import inquirer from 'inquirer'
 import { DeepEngine, loadConfig } from '@deep-agent/core'
 import type { DeepEvent } from '@deep-agent/core'
+import type { Ora } from 'ora'
 
 // Helper function to handle chat events
-export async function handleChatEvent(event: DeepEvent, spinner: any): Promise<void> {
+export async function handleChatEvent(event: DeepEvent, spinner: Ora): Promise<void> {
   switch (event.type) {
     case 'turn_start':
       spinner.text = 'Processing your message...'
@@ -138,7 +139,7 @@ export async function askCommand(message: string, options: AskOptions): Promise<
 
   const spinner = ora('Processing...').start()
   let responseText = ''
-  let usage: any = null
+  let usage: import('@deep-agent/core').Usage | null = null
 
   for await (const event of engine.processMessage(message, options.conversation)) {
     if (event.type === 'content_delta') {
@@ -180,7 +181,7 @@ export async function listCommand(): Promise<void> {
 
   console.log(chalk.blue(`Found ${conversations.length} conversation(s):\n`))
 
-  conversations.forEach((conv: any, index: number) => {
+  conversations.forEach((conv, index: number) => {
     console.log(`${index + 1}. ${chalk.cyan(conv.id)}`)
     console.log(`   Created: ${chalk.gray(conv.createdAt.toLocaleString())}`)
     console.log(`   Updated: ${chalk.gray(conv.updatedAt.toLocaleString())}`)

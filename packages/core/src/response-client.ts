@@ -1,6 +1,7 @@
 // OpenAI Responses API Client - using the real API
 import { OpenAI } from 'openai'
 import type { IResponseClient, DeepConfig } from './types.js'
+import type { ResponseObject, ResponseCreateParams, Item } from './types/index.js'
 
 export class OpenAIResponseClient implements IResponseClient {
   private client: OpenAI
@@ -11,7 +12,7 @@ export class OpenAIResponseClient implements IResponseClient {
     this.config = config
   }
 
-  async create(params: any): Promise<any> {
+  async create(params: ResponseCreateParams): Promise<ResponseObject> {
     try {
       const enhancedParams = this.enhanceParams(params)
       
@@ -36,7 +37,7 @@ export class OpenAIResponseClient implements IResponseClient {
     }
   }
 
-  async *stream(params: any): AsyncIterable<any> {
+  async *stream(params: ResponseCreateParams): AsyncIterable<ResponseObject> {
     try {
       const enhancedParams = { ...this.enhanceParams(params), stream: true }
 
@@ -49,10 +50,10 @@ export class OpenAIResponseClient implements IResponseClient {
 
       // For streaming responses, OpenAI SDK returns an async iterable
       // For non-streaming, it returns a Response object directly
-      if (enhancedParams.stream && stream && typeof (stream as any)[Symbol.asyncIterator] === 'function') {
-        for await (const event of stream as unknown as AsyncIterable<any>) {
+      if (enhancedParams.stream && stream && typeof (stream as unknown as AsyncIterable<ResponseObject>)[Symbol.asyncIterator] === 'function') {
+        for await (const event of stream as unknown as AsyncIterable<ResponseObject>) {
           if (this.config.logPaths) {
-            console.log('[ResponseClient] Stream event type:', (event as any).type)
+            console.log('[ResponseClient] Stream event type:', event.object)
           }
           yield event
         }
@@ -72,12 +73,12 @@ export class OpenAIResponseClient implements IResponseClient {
   }
 
   async followup(params: {
-    input: any[]
+    input: Item[]
     previousResponseId: string
-    tools?: any[]
+    tools?: unknown[]
     maxOutputTokens?: number
-  }): Promise<any> {
-    const requestParams: any = {
+  }): Promise<ResponseObject> {
+    const requestParams: ResponseCreateParams = {
       model: this.config.model,
       input: params.input,
       previous_response_id: params.previousResponseId,
@@ -88,8 +89,8 @@ export class OpenAIResponseClient implements IResponseClient {
     return this.create(requestParams)
   }
 
-  private enhanceParams(params: any): any {
-    const enhanced: any = {
+  private enhanceParams(params: ResponseCreateParams): ResponseCreateParams {
+    const enhanced: ResponseCreateParams = {
       ...params,
       model: params.model || this.config.model,
       store: this.config.store,
@@ -128,7 +129,7 @@ export class OpenAIResponseClient implements IResponseClient {
   }
 
   // Normalize usage from Responses format to Chat Completions format for backward compatibility
-  normalizeUsage(usage: any): { prompt_tokens: number; completion_tokens: number; total_tokens: number } {
+  normalizeUsage(usage: { input_tokens: number; output_tokens: number; total_tokens: number }): { prompt_tokens: number; completion_tokens: number; total_tokens: number } {
     return {
       prompt_tokens: usage.input_tokens,
       completion_tokens: usage.output_tokens,
