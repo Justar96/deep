@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "WebSearch",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(npm run test:*)",
+      "Bash(npm run build:*)",
+      "Bash(tree:*)",
+      "Bash(cat:*)",
+      "Bash(find:*)",
+      "Bash(npm install)",
+      "Bash(npm run clean:*)"
     ],
     "deny": [],
     "ask": [],
