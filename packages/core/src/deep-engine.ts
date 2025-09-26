@@ -10,15 +10,15 @@ import type {
 } from './types.js'
 import { OpenAIResponseClient } from './response-client.js'
 import { MemoryConversationManager } from './conversation-manager.js'
-import { BasicToolRegistry } from './tool-registry.js'
-import { EnhancedToolRegistry } from './enhanced-tool-registry.js'
+import { BaseToolRegistryWrapper } from './base-tool-registry.js'
+import { ToolRegistry } from './tool-registry.js'
 import { Turn } from './turn.js'
 
 export class DeepEngine implements IDeepEngine {
   private client: OpenAI
   private responseClient: OpenAIResponseClient
   private conversationManager: MemoryConversationManager
-  private toolRegistry: EnhancedToolRegistry
+  private toolRegistry: ToolRegistry
   private config: DeepConfig
 
   constructor(config: DeepConfig) {
@@ -31,8 +31,8 @@ export class DeepEngine implements IDeepEngine {
     this.responseClient = new OpenAIResponseClient(this.client, config)
     // Initialize enhanced conversation manager with compression support
     this.conversationManager = new MemoryConversationManager(this.client, config)
-    // Initialize enhanced tool registry with Sprint 2 features
-    this.toolRegistry = new EnhancedToolRegistry(config)
+    // Initialize tool registry with Sprint 2 features
+    this.toolRegistry = new ToolRegistry(config)
   }
 
   async *processMessage(

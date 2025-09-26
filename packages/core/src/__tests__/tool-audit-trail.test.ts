@@ -192,8 +192,11 @@ describe('ToolAuditTrail', () => {
     })
 
     it('should retrieve unauthorized attempts', async () => {
+      // Use a fresh audit trail to avoid interference from beforeEach setup
+      const freshAuditTrail = new ToolAuditTrail({ maxLogEntries: 1000, persistenceEnabled: false })
+
       // Add an unauthorized attempt (high risk, not approved)
-      await auditTrail.logToolExecution(
+      await freshAuditTrail.logToolExecution(
         'dangerous_tool',
         'call4',
         'conv3',
@@ -207,7 +210,7 @@ describe('ToolAuditTrail', () => {
         'user'
       )
 
-      const entries = auditTrail.getUnauthorizedAttempts()
+      const entries = freshAuditTrail.getUnauthorizedAttempts()
       expect(entries).toHaveLength(1)
       expect(entries[0].approved).toBe(false)
       expect(entries[0].riskLevel).toBe('high')
@@ -255,16 +258,17 @@ describe('ToolAuditTrail', () => {
   })
 
   describe('Security Report Generation', () => {
-    beforeEach(async () => {
-      // Add various test scenarios
-      await auditTrail.logToolExecution('safe_tool', 'call1', 'conv1', '{}', 'ok', 100, true, undefined, 'low')
-      await auditTrail.logToolExecution('risky_tool', 'call2', 'conv1', '{}', 'ok', 150, true, undefined, 'high')
-      await auditTrail.logToolExecution('failing_tool', 'call3', 'conv1', '{}', '', 200, false, 'error', 'medium')
-      await auditTrail.logToolExecution('unauthorized_tool', 'call4', 'conv1', '{}', '', 0, false, 'denied', 'high', false)
-    })
+    it('should generate security report', async () => {
+      // Use a fresh audit trail to avoid interference from other tests
+      const freshAuditTrail = new ToolAuditTrail({ maxLogEntries: 1000, persistenceEnabled: false })
 
-    it('should generate security report', () => {
-      const report = auditTrail.generateSecurityReport()
+      // Add various test scenarios
+      await freshAuditTrail.logToolExecution('safe_tool', 'call1', 'conv1', '{}', 'ok', 100, true, undefined, 'low', true, 'auto')
+      await freshAuditTrail.logToolExecution('risky_tool', 'call2', 'conv1', '{}', 'ok', 150, true, undefined, 'high', true, 'user')
+      await freshAuditTrail.logToolExecution('failing_tool', 'call3', 'conv1', '{}', '', 200, false, 'error', 'medium', true, 'user')
+      await freshAuditTrail.logToolExecution('unauthorized_tool', 'call4', 'conv1', '{}', '', 0, false, 'denied', 'high', false, 'user')
+
+      const report = freshAuditTrail.generateSecurityReport()
 
       expect(report.summary).toContain('Total Executions: 4')
       expect(report.summary).toContain('Success Rate: 50.0%')
@@ -274,32 +278,57 @@ describe('ToolAuditTrail', () => {
       expect(report.riskScore).toBeLessThanOrEqual(100)
     })
 
-    it('should include alerts for high failure rate', () => {
+    it('should include alerts for high failure rate', async () => {
+      // Add test data to trigger high failure rate (>10%)
+      await auditTrail.logToolExecution('tool1', 'call1', 'conv1', '{}', 'ok', 100, true, undefined, 'low', true, 'auto')
+      await auditTrail.logToolExecution('tool2', 'call2', 'conv1', '{}', '', 100, false, 'error', 'medium', true, 'user')
+      await auditTrail.logToolExecution('tool3', 'call3', 'conv1', '{}', '', 100, false, 'error', 'medium', true, 'user')
+
       const report = auditTrail.generateSecurityReport()
 
       expect(report.alerts.some(alert => alert.includes('failure rate'))).toBe(true)
     })
 
-    it('should include alerts for high-risk operations', () => {
+    it('should include alerts for high-risk operations', async () => {
+      // Add test data to trigger high-risk operations alert (>5%)
+      await auditTrail.logToolExecution('risky_tool1', 'call1', 'conv1', '{}', 'ok', 100, true, undefined, 'high', true, 'user')
+      await auditTrail.logToolExecution('risky_tool2', 'call2', 'conv1', '{}', 'ok', 100, true, undefined, 'high', true, 'user')
+      await auditTrail.logToolExecution('safe_tool', 'call3', 'conv1', '{}', 'ok', 100, true, undefined, 'low', true, 'auto')
+
       const report = auditTrail.generateSecurityReport()
 
       expect(report.alerts.some(alert => alert.includes('high-risk'))).toBe(true)
     })
 
-    it('should include alerts for unauthorized attempts', () => {
+    it('should include alerts for unauthorized attempts', async () => {
+      // Add test data to trigger unauthorized attempts alert
+      await auditTrail.logToolExecution('safe_tool', 'call1', 'conv1', '{}', 'ok', 100, true, undefined, 'low', true, 'auto')
+      await auditTrail.logToolExecution('unauthorized_tool', 'call2', 'conv1', '{}', '', 0, false, 'denied', 'high', false, 'user')
+
       const report = auditTrail.generateSecurityReport()
 
       expect(report.alerts.some(alert => alert.includes('unauthorized'))).toBe(true)
     })
 
-    it('should include recommendations', () => {
+    it('should include recommendations', async () => {
+      // Add test data to trigger recommendations (high failure rate)
+      await auditTrail.logToolExecution('tool1', 'call1', 'conv1', '{}', 'ok', 100, true, undefined, 'low', true, 'auto')
+      await auditTrail.logToolExecution('tool2', 'call2', 'conv1', '{}', '', 100, false, 'error', 'medium', true, 'user')
+      await auditTrail.logToolExecution('tool3', 'call3', 'conv1', '{}', '', 100, false, 'error', 'medium', true, 'user')
+
       const report = auditTrail.generateSecurityReport()
 
       expect(report.recommendations.length).toBeGreaterThan(0)
       expect(report.recommendations.some(rec => rec.includes('Review'))).toBe(true)
     })
 
-    it('should calculate appropriate risk score', () => {
+    it('should calculate appropriate risk score', async () => {
+      // Add test data to trigger high risk score (50% failure rate, high-risk ops, unauthorized attempts)
+      await auditTrail.logToolExecution('safe_tool', 'call1', 'conv1', '{}', 'ok', 100, true, undefined, 'low', true, 'auto')
+      await auditTrail.logToolExecution('risky_tool', 'call2', 'conv1', '{}', 'ok', 150, true, undefined, 'high', true, 'user')
+      await auditTrail.logToolExecution('failing_tool', 'call3', 'conv1', '{}', '', 200, false, 'error', 'medium', true, 'user')
+      await auditTrail.logToolExecution('unauthorized_tool', 'call4', 'conv1', '{}', '', 0, false, 'denied', 'high', false, 'user')
+
       const report = auditTrail.generateSecurityReport()
 
       // With 50% failure rate, high-risk ops, and unauthorized attempts

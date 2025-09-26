@@ -5,11 +5,11 @@ export * from './deep-engine.js'
 export * from './response-client.js'
 export * from './conversation-manager.js'
 export * from './conversation-compression.js'
+export * from './base-tool-registry.js'
 export * from './tool-registry.js'
 export * from './turn.js'
 
 // Sprint 2: Enhanced Tool System exports
-export * from './enhanced-tool-registry.js'
 export * from './tool-confirmation-bus.js'
 export * from './tool-impact-analyzer.js'
 export * from './tool-audit-trail.js'

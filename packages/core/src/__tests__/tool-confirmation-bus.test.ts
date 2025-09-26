@@ -94,18 +94,21 @@ describe('ToolConfirmationBus', () => {
       expect(endTime - startTime).toBeGreaterThanOrEqual(100)
     })
 
-    it('should emit confirmation_request event', (done) => {
+    it('should emit confirmation_request event', async () => {
       const confirmation = createMockToolConfirmation()
 
-      confirmationBus.on('confirmation_request', (request) => {
-        expect(request.id).toBeDefined()
-        expect(request.toolCall).toEqual(confirmation)
-        expect(request.timeoutMs).toBe(500)
-        expect(request.requestTime).toBeInstanceOf(Date)
-        done()
+      const eventPromise = new Promise<void>((resolve) => {
+        confirmationBus.on('confirmation_request', (request) => {
+          expect(request.id).toBeDefined()
+          expect(request.toolCall).toEqual(confirmation)
+          expect(request.timeoutMs).toBe(500)
+          expect(request.requestTime).toBeInstanceOf(Date)
+          resolve()
+        })
       })
 
       confirmationBus.requestApproval(confirmation, 500)
+      await eventPromise
     })
   })
 
@@ -322,25 +325,30 @@ describe('ToolConfirmationBus', () => {
   })
 
   describe('Event Handling', () => {
-    it('should emit request_timeout event on timeout', (done) => {
+    it('should emit request_timeout event on timeout', async () => {
       const confirmation = createMockToolConfirmation()
 
-      confirmationBus.on('request_timeout', (requestId) => {
-        expect(requestId).toBeDefined()
-        done()
+      const timeoutPromise = new Promise<void>((resolve) => {
+        confirmationBus.on('request_timeout', (requestId) => {
+          expect(requestId).toBeDefined()
+          resolve()
+        })
       })
 
       confirmationBus.requestApproval(confirmation, 50)
+      await timeoutPromise
     })
 
-    it('should emit confirmation_response event on approval', (done) => {
+    it('should emit confirmation_response event on approval', async () => {
       const confirmation = createMockToolConfirmation()
 
-      confirmationBus.on('confirmation_response', (requestId, approved, reason) => {
-        expect(requestId).toBeDefined()
-        expect(approved).toBe(true)
-        expect(reason).toBe('Test approval')
-        done()
+      const responsePromise = new Promise<void>((resolve) => {
+        confirmationBus.on('confirmation_response', (requestId, approved, reason) => {
+          expect(requestId).toBeDefined()
+          expect(approved).toBe(true)
+          expect(reason).toBe('Test approval')
+          resolve()
+        })
       })
 
       confirmationBus.on('confirmation_request', (request) => {
@@ -350,16 +358,19 @@ describe('ToolConfirmationBus', () => {
       })
 
       confirmationBus.requestApproval(confirmation, 500)
+      await responsePromise
     })
 
-    it('should emit confirmation_response event on denial', (done) => {
+    it('should emit confirmation_response event on denial', async () => {
       const confirmation = createMockToolConfirmation()
 
-      confirmationBus.on('confirmation_response', (requestId, approved, reason) => {
-        expect(requestId).toBeDefined()
-        expect(approved).toBe(false)
-        expect(reason).toBe('Test denial')
-        done()
+      const responsePromise = new Promise<void>((resolve) => {
+        confirmationBus.on('confirmation_response', (requestId, approved, reason) => {
+          expect(requestId).toBeDefined()
+          expect(approved).toBe(false)
+          expect(reason).toBe('Test denial')
+          resolve()
+        })
       })
 
       confirmationBus.on('confirmation_request', (request) => {
@@ -369,6 +380,7 @@ describe('ToolConfirmationBus', () => {
       })
 
       confirmationBus.requestApproval(confirmation, 500)
+      await responsePromise
     })
   })
 })

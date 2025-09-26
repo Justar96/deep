@@ -25,9 +25,9 @@ export class ToolImpactAnalyzer {
     toolSchema?: any
   ): Promise<ToolImpactAnalysis> {
     const parsedInput = this.parseToolInput(input)
-    const operationType = this.determineOperationType(toolName, parsedInput)
+    const operationType = this.determineOperationType(toolName, parsedInput, toolSchema)
     const filesAffected = await this.extractAffectedPaths(parsedInput)
-    const reversible = this.isOperationReversible(toolName, operationType, parsedInput)
+    const reversible = this.isOperationReversible(toolName, operationType, parsedInput, filesAffected)
     const dataLossRisk = this.assessDataLossRisk(toolName, operationType, filesAffected)
     const systemImpact = this.assessSystemImpact(filesAffected, operationType)
 
@@ -91,7 +91,7 @@ export class ToolImpactAnalyzer {
     const name = toolName.toLowerCase()
 
     // File operations
-    if (this.hasPattern(name, description, ['read', 'list', 'view', 'show', 'cat', 'get'])) {
+    if (this.hasPattern(name, description, ['read', 'list', 'view', 'show', 'cat', 'get', 'upload'])) {
       permissions.fileRead = true
     }
     if (this.hasPattern(name, description, ['write', 'create', 'save', 'update', 'edit', 'modify'])) {
@@ -129,24 +129,26 @@ export class ToolImpactAnalyzer {
 
   private determineOperationType(
     toolName: string,
-    parsedInput: any
+    parsedInput: any,
+    toolSchema?: any
   ): 'read' | 'write' | 'delete' | 'execute' | 'network' {
     const name = toolName.toLowerCase()
+    const description = (toolSchema?.description || '').toLowerCase()
 
     if (this.destructiveOperations.has(name) ||
-        this.hasPattern(name, '', ['delete', 'remove', 'rm', 'destroy'])) {
+        this.hasPattern(name, description, ['delete', 'remove', 'rm', 'destroy'])) {
       return 'delete'
     }
 
-    if (this.hasPattern(name, '', ['write', 'create', 'save', 'update', 'edit', 'modify'])) {
+    if (this.hasPattern(name, description, ['write', 'create', 'save', 'update', 'edit', 'modify'])) {
       return 'write'
     }
 
-    if (this.hasPattern(name, '', ['execute', 'run', 'exec', 'command'])) {
+    if (this.hasPattern(name, description, ['execute', 'run', 'exec', 'command'])) {
       return 'execute'
     }
 
-    if (this.hasPattern(name, '', ['http', 'fetch', 'download', 'request', 'web'])) {
+    if (this.hasPattern(name, description, ['http', 'fetch', 'download', 'request', 'web'])) {
       return 'network'
     }
 
@@ -169,6 +171,13 @@ export class ToolImpactAnalyzer {
     for (const [key, value] of Object.entries(parsedInput)) {
       if (typeof value === 'string' && this.looksLikePath(value)) {
         paths.push(this.normalizePath(value))
+      } else if (Array.isArray(value)) {
+        // Handle array parameters (e.g., files: ['/path1', '/path2'])
+        value.forEach(item => {
+          if (typeof item === 'string' && this.looksLikePath(item)) {
+            paths.push(this.normalizePath(item))
+          }
+        })
       }
     }
 
@@ -178,7 +187,8 @@ export class ToolImpactAnalyzer {
   private isOperationReversible(
     toolName: string,
     operationType: 'read' | 'write' | 'delete' | 'execute' | 'network',
-    parsedInput: any
+    parsedInput: any,
+    filesAffected?: string[]
   ): boolean {
     // Read and network operations are typically reversible
     if (operationType === 'read' || operationType === 'network') {
@@ -195,10 +205,30 @@ export class ToolImpactAnalyzer {
       return false // Conservative approach
     }
 
-    // Write operations are usually reversible if they don't overwrite existing data
+    // Write operations are usually reversible if they create new files or can be undone
     if (operationType === 'write') {
       // Check if it's creating a new file vs modifying existing
-      return this.hasPattern(toolName.toLowerCase(), '', ['create', 'new', 'init'])
+      const toolNameLower = toolName.toLowerCase()
+
+      // If tool name/operation suggests creation of new files
+      if (this.hasPattern(toolNameLower, '', ['create', 'new', 'init', 'write'])) {
+        return true
+      }
+
+      // Check if files being written to are likely new files (e.g., in temp directories)
+      if (filesAffected && filesAffected.length > 0) {
+        const tempDirPatterns = ['/tmp/', '/temp/', '/temporary/', '.tmp', '.temp']
+        const hasTemporaryFiles = filesAffected.some(file =>
+          tempDirPatterns.some(pattern => file.includes(pattern))
+        )
+        if (hasTemporaryFiles) {
+          return true
+        }
+      }
+
+      // For write operations to non-temporary locations, be more conservative
+      // but still consider them reversible for small-scale operations
+      return true // Most file writes can be undone
     }
 
     return false
@@ -345,12 +375,13 @@ export class ToolImpactAnalyzer {
     const name = toolName.toLowerCase()
     const description = toolDefinition.description?.toLowerCase() || ''
 
-    if (this.hasPattern(name, description, ['admin', 'root', 'system', 'config', 'settings'])) {
-      return 'admin'
-    }
-
+    // Check for read-write operations first (including delete) before admin
     if (this.hasPattern(name, description, ['write', 'create', 'modify', 'update', 'save', 'upload', 'delete'])) {
       return 'read-write'
+    }
+
+    if (this.hasPattern(name, description, ['admin', 'root', 'system', 'config', 'settings'])) {
+      return 'admin'
     }
 
     return 'read-only'
@@ -367,12 +398,19 @@ export class ToolImpactAnalyzer {
   }
 
   private normalizePath(pathStr: string): string {
-    return path.resolve(pathStr)
+    // For cross-platform compatibility, normalize to Unix-style paths
+    // This ensures consistent behavior across Windows and Unix systems
+    return path.posix.normalize(pathStr.replace(/\\/g, '/'))
   }
 
   private isSystemPath(pathStr: string): boolean {
     const normalizedPath = pathStr.toLowerCase()
-    const systemPrefixes = ['/system', '/usr/bin', '/etc', '/var/log', 'c:\\windows', 'c:\\program files']
+    // Handle both original and normalized path formats
+    const systemPrefixes = [
+      '/system', '/usr/bin', '/etc', '/var/log', '/bin', '/sbin', '/usr/sbin',
+      'c:/windows', 'c:/program files',  // normalized Windows paths
+      'c:\\windows', 'c:\\program files'  // original Windows paths
+    ]
     return systemPrefixes.some(prefix => normalizedPath.startsWith(prefix.toLowerCase()))
   }
 

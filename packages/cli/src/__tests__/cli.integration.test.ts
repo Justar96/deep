@@ -20,7 +20,7 @@ vi.mock('dotenv', () => ({
   config: vi.fn()
 }))
 
-vi.mock('./commands.js', () => ({
+vi.mock('../commands.js', () => ({
   chatCommand: vi.fn(),
   askCommand: vi.fn(),
   listCommand: vi.fn(),
@@ -38,7 +38,7 @@ describe('CLI Integration', () => {
     const MockCommand = Command as any
 
     // Import the CLI module to trigger setup
-    await import('./cli')
+    await import('../cli')
 
     expect(MockCommand).toHaveBeenCalled()
 
@@ -60,7 +60,7 @@ describe('CLI Integration', () => {
 
   it('should import command functions', async () => {
     // This test ensures the imports work correctly
-    const commands = await import('./commands')
+    const commands = await import('../commands')
 
     expect(commands.chatCommand).toBeDefined()
     expect(commands.askCommand).toBeDefined()
