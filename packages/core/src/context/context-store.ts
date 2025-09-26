@@ -16,7 +16,7 @@ import type {
   Diagnostic,
   Symbol,
   DeepConfig
-} from '../types.js'
+} from '../types/core-types.js'
 import { GitManager } from './git-manager.js'
 import { FileWatcher } from './file-watcher.js'
 import { ContextAnalyzer } from './context-analyzer.js'

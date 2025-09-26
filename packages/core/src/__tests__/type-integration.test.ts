@@ -1,10 +1,10 @@
 // Integration tests for type safety across package boundaries
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { DeepEngine } from '../deep-engine.js'
-import { OpenAIResponseClient } from '../response-client.js'
-import { MemoryConversationManager } from '../conversation-manager.js'
-import { loadConfig } from '../config.js'
-import { isResponseObject, isItem, assertType } from '../types/type-guards.js'
+import { DeepEngine } from '../models/deep-engine.js'
+import { OpenAIResponseClient } from '../responses/response-client.js'
+import { MemoryConversationManager } from '../conversations/conversation-manager.js'
+import { BaseToolRegistry } from '../tools/base-tool-registry.js'
+import type { IToolRegistry, IConversationManager } from '../types/core-types.js'
 import type { 
   ResponseObject, 
   Item, 
@@ -12,6 +12,11 @@ import type {
   DeepEvent, 
   ConversationState,
   Usage
+} from '../types/index.js'
+import { 
+  isResponseObject, 
+  isItem,
+  assertType
 } from '../types/index.js'
 
 describe('Type Integration Tests', () => {

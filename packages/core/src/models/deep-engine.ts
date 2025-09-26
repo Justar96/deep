@@ -7,13 +7,13 @@ import type {
   ConversationState, 
   DeepConfig,
   TurnContext 
-} from './types.js'
-import type { Tool } from './types/index.js'
-import { OpenAIResponseClient } from './response-client.js'
-import { MemoryConversationManager } from './conversation-manager.js'
-import { BaseToolRegistryWrapper } from './base-tool-registry.js'
-import { ToolRegistry } from './tool-registry.js'
-import { Turn } from './turn.js'
+} from '../types/core-types.js'
+import type { Tool } from '../types/index.js'
+import { OpenAIResponseClient } from '../responses/response-client.js'
+import { MemoryConversationManager } from '../conversations/conversation-manager.js'
+import { BaseToolRegistryWrapper } from '../tools/base-tool-registry.js'
+import { ToolRegistry } from '../tools/tool-registry.js'
+import { Turn } from '../conversations/turn.js'
 
 export class DeepEngine implements IDeepEngine {
   private client: OpenAI
@@ -130,11 +130,11 @@ export class DeepEngine implements IDeepEngine {
   }
 
   // Sprint 2: Enhanced tool management methods
-  getToolAuditTrail(limit?: number): import('./types.js').ToolAuditEntry[] {
+  getToolAuditTrail(limit?: number): import('../types/core-types.js').ToolAuditEntry[] {
     return this.toolRegistry.getAuditTrail(limit)
   }
 
-  getToolSecurityReport(): import('./types/index.js').ToolSecurityReport {
+  getToolSecurityReport(): import('../types/index.js').ToolSecurityReport {
     return this.toolRegistry.getSecurityReport()
   }
 
@@ -146,7 +146,7 @@ export class DeepEngine implements IDeepEngine {
     this.toolRegistry.resetEmergencyStop()
   }
 
-  getActiveToolExecutions(): import('./types/index.js').ActiveExecution[] {
+  getActiveToolExecutions(): import('../types/index.js').ActiveExecution[] {
     return this.toolRegistry.getActiveExecutions()
   }
 

@@ -12,11 +12,11 @@ import type {
   IContextStore,
   IDEIntegration,
   ContextCompression
-} from './types.js'
-import type { Tool } from './types/index.js'
+} from '../types/core-types.js'
+import type { Tool } from '../types/index.js'
 import { DeepEngine } from './deep-engine.js'
-import { Turn } from './turn.js'
-import { ContextStore } from './context/index.js'
+import { Turn } from '../conversations/turn.js'
+import { ContextStore } from '../context/index.js'
 
 /**
  * Context-aware extension of DeepEngine with IDE integration

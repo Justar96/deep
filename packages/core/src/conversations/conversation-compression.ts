@@ -7,7 +7,7 @@ import type {
   SplitPointAnalysis,
   ConversationHealth,
   DeepConfig
-} from './types.js'
+} from '../types/core-types.js'
 
 export class ConversationCompressionService {
   private client: OpenAI

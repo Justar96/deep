@@ -6,7 +6,7 @@ import type {
   ToolRiskAssessment,
   ToolConfirmation,
   ToolPermissions
-} from './types.js'
+} from '../types/core-types.js'
 
 export class ToolImpactAnalyzer {
   private riskPatterns: Map<string, RegExp[]> = new Map()

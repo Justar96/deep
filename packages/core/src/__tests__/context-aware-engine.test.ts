@@ -1,7 +1,7 @@
 // Context-Aware Deep Engine Test Suite - Sprint 3: IDE Context Integration
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { ContextAwareDeepEngine } from '../context-aware-engine.js'
-import type { DeepConfig, IDEContext, ContextDelta, IContextStore, IDEIntegration } from '../types.js'
+import { ContextAwareDeepEngine } from '../models/context-aware-engine.js'
+import type { DeepConfig, IDEContext, ContextDelta, IContextStore, IDEIntegration } from '../types/core-types.js'
 import { createMinimalTestConfig } from '../../../../test-utils/test-config.js'
 
 // Mock dependencies

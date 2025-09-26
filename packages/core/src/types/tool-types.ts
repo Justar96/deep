@@ -1,5 +1,5 @@
 // Tool system types to replace 'any' in tool registries and execution
-import type { ToolSchema, ToolPermissions, ToolImpactAnalysis, ToolConfirmation, ToolAuditEntry } from '../types.js'
+import type { ToolSchema, ToolPermissions, ToolImpactAnalysis, ToolConfirmation, ToolAuditEntry } from './core-types.js'
 
 export interface JSONSchema {
   type: 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null'

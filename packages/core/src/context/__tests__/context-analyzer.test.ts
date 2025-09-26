@@ -1,7 +1,7 @@
 // Context Analyzer Test Suite - Sprint 3: IDE Context Integration
 import { describe, it, expect, beforeEach } from 'vitest'
 import { ContextAnalyzer } from '../context-analyzer.js'
-import type { DeepConfig, IDEContext, FileChange } from '../../types.js'
+import type { DeepConfig, IDEContext, FileChange } from '../../types/core-types.js'
 
 describe('ContextAnalyzer', () => {
   let analyzer: ContextAnalyzer

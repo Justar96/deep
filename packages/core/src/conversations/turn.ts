@@ -6,8 +6,8 @@ import type {
   IResponseClient, 
   IToolRegistry, 
   IConversationManager 
-} from './types.js'
-import type { ResponseObject, Item, FunctionCallOutputItem } from './types/index.js'
+} from '../types/core-types.js'
+import type { ResponseObject, Item, FunctionCallOutputItem } from '../types/index.js'
 
 export class Turn extends EventEmitter<{ event: (event: DeepEvent) => void }> {
   private context: TurnContext

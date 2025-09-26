@@ -3,7 +3,7 @@ import { EventEmitter } from 'events'
 import { execSync, spawn } from 'child_process'
 import { promisify } from 'util'
 import { readdir, stat } from 'fs/promises'
-import type { GitContext, GitCommit } from '../types.js'
+import type { GitContext, GitCommit } from '../types/core-types.js'
 
 /**
  * Manages Git state tracking for IDE context integration

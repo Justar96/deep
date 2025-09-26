@@ -5,7 +5,7 @@ import type {
   DeepConfig,
   FileChange,
   GitCommit
-} from '../types.js'
+} from '../types/core-types.js'
 
 /**
  * Compresses IDE context to fit within token limits while preserving important information

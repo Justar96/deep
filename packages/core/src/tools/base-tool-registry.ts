@@ -1,5 +1,5 @@
 // Base Tool Registry - core tool management functionality
-import type { IToolRegistry } from './types.js'
+import type { IToolRegistry } from '../types/core-types.js'
 
 export interface BaseToolEntry {
   definition: any

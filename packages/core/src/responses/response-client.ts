@@ -1,7 +1,7 @@
 // OpenAI Responses API Client - using the real API
 import { OpenAI } from 'openai'
-import type { IResponseClient, DeepConfig } from './types.js'
-import type { ResponseObject, ResponseCreateParams, Item } from './types/index.js'
+import type { IResponseClient, DeepConfig } from '../types/core-types.js'
+import type { ResponseObject, ResponseCreateParams, Item } from '../types/index.js'
 
 export class OpenAIResponseClient implements IResponseClient {
   private client: OpenAI

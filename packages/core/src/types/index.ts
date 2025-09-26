@@ -1,6 +1,9 @@
 // Central export for all strongly-typed interfaces
 // Use this to replace 'any' types across the codebase
 
+// Core types
+export * from './core-types.js'
+
 // OpenAI API types
 export type {
   Usage,

@@ -1,6 +1,6 @@
 // Configuration management based on documented environment variables
 import { z } from 'zod'
-import type { DeepConfig } from './types.js'
+import type { DeepConfig } from '../types/core-types.js'
 
 const ConversationCompressionSchema = z.object({
   enabled: z.boolean().default(true),

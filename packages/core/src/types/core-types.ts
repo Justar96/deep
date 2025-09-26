@@ -26,8 +26,8 @@ export interface ConversationCompression {
 // Smart split-point detection for preserving function call chains
 export interface SplitPointAnalysis {
   splitIndex: number
-  preservedItems: import('./types/index.js').Item[]
-  compressibleItems: import('./types/index.js').Item[]
+  preservedItems: import('./index.js').Item[]
+  compressibleItems: import('./index.js').Item[]
   reasoning: string
   confidence: number
 }
@@ -104,7 +104,7 @@ export interface DeepConfig {
 // Enhanced conversation state management
 export interface ConversationState {
   id: string
-  messages: import('./types/index.js').Item[] // OpenAI response items
+  messages: import('./index.js').Item[] // OpenAI response items
   lastResponseId?: string
   metadata: Record<string, unknown>
   createdAt: Date
@@ -121,7 +121,7 @@ export interface TurnContext {
   conversationId: string
   userInput: string
   previousResponseId?: string
-  tools?: import('./types/index.js').Tool[] // OpenAI tools
+  tools?: import('./index.js').Tool[] // OpenAI tools
   maxOutputTokens?: number
 }
 
@@ -133,7 +133,7 @@ export type DeepEvent =
   | { type: 'tool_call'; data: { name: string; input: string; callId: string } }
   | { type: 'tool_result'; data: { callId: string; output: string } }
   | { type: 'reasoning_summary'; data: { summary: string } }
-  | { type: 'turn_complete'; data: { usage: import('./types/index.js').Usage; responseId: string } }
+  | { type: 'turn_complete'; data: { usage: import('./index.js').Usage; responseId: string } }
   | { type: 'error'; data: { error: string; code?: string } }
   // Enhanced Sprint 2 tool events
   | { type: 'tool_confirmation_request'; data: { confirmation: ToolConfirmation; timeoutMs: number } }
@@ -154,14 +154,14 @@ export interface IDeepEngine {
 
 // Response client interface for normalized API access
 export interface IResponseClient {
-  create(params: import('./types/index.js').ResponseCreateParams): Promise<import('./types/index.js').ResponseObject>
-  stream(params: import('./types/index.js').ResponseCreateParams): AsyncIterable<import('./types/index.js').ResponseObject>
+  create(params: import('./index.js').ResponseCreateParams): Promise<import('./index.js').ResponseObject>
+  stream(params: import('./index.js').ResponseCreateParams): AsyncIterable<import('./index.js').ResponseObject>
   followup(params: {
-    input: import('./types/index.js').Item[]
+    input: import('./index.js').Item[]
     previousResponseId: string
     tools?: unknown[]
     maxOutputTokens?: number
-  }): Promise<import('./types/index.js').ResponseObject>
+  }): Promise<import('./index.js').ResponseObject>
 }
 
 // Enhanced tool confirmation system (Sprint 2)
@@ -211,8 +211,8 @@ export interface ToolSchema {
   name: string
   version: string
   description: string
-  parameters: import('./types/index.js').JSONSchema // JSON Schema for tool parameters
-  returnType: import('./types/index.js').JSONSchema // JSON Schema for return value
+  parameters: import('./index.js').JSONSchema // JSON Schema for tool parameters
+  returnType: import('./index.js').JSONSchema // JSON Schema for return value
   riskAssessment: ToolRiskAssessment
   permissions: ToolPermissions
 }
@@ -255,11 +255,11 @@ export interface ToolConfirmationRequest {
 
 // Tool registry interface for managing available tools
 export interface IToolRegistry {
-  getTools(trusted: boolean): import('./types/index.js').Tool[]
+  getTools(trusted: boolean): import('./index.js').Tool[]
   executeToolCall(name: string, input: string, callId: string): Promise<string>
 
   // Enhanced Sprint 2 methods
-  validateToolSchema(tool: import('./types/index.js').Tool): Promise<boolean>
+  validateToolSchema(tool: import('./index.js').Tool): Promise<boolean>
   analyzeToolImpact(toolName: string, input: string): Promise<ToolImpactAnalysis>
   requestApproval(confirmation: ToolConfirmation): Promise<boolean>
   getAuditTrail(limit?: number): ToolAuditEntry[]
@@ -270,14 +270,14 @@ export interface IToolRegistry {
 export interface IConversationManager {
   get(id: string): Promise<ConversationState | null>
   create(id: string): Promise<ConversationState>
-  update(id: string, items: import('./types/index.js').Item[], responseId?: string): Promise<void>
+  update(id: string, items: import('./index.js').Item[], responseId?: string): Promise<void>
   list(): Promise<ConversationState[]>
   delete(id: string): Promise<void>
   // New compression and curation methods
   compressConversation(id: string, strategy?: ConversationCompression['strategy']): Promise<void>
   curateConversation(id: string): Promise<void>
-  analyzeTokenUsage(messages: import('./types/index.js').Item[]): Promise<ConversationMetrics['tokenUsage']>
-  findSplitPoint(messages: import('./types/index.js').Item[]): Promise<SplitPointAnalysis>
+  analyzeTokenUsage(messages: import('./index.js').Item[]): Promise<ConversationMetrics['tokenUsage']>
+  findSplitPoint(messages: import('./index.js').Item[]): Promise<SplitPointAnalysis>
   validateConversationHealth(id: string): Promise<ConversationHealth>
 }
 

@@ -5,7 +5,7 @@ import type {
   ContextRelevance,
   DeepConfig,
   FileChange
-} from '../types.js'
+} from '../types/core-types.js'
 
 /**
  * Analyzes context relevance and performs intelligent filtering

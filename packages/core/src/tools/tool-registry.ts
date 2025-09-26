@@ -12,7 +12,7 @@ import type {
   ToolPermissions,
   DeepConfig,
   DeepEvent
-} from './types.js'
+} from '../types/core-types.js'
 import { BaseToolRegistry, type BaseToolEntry } from './base-tool-registry.js'
 import { ToolConfirmationBus } from './tool-confirmation-bus.js'
 import { ToolImpactAnalyzer } from './tool-impact-analyzer.js'

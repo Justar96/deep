@@ -1,7 +1,7 @@
 // Context Store Test Suite - Sprint 3: IDE Context Integration
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { ContextStore } from '../context-store.js'
-import type { DeepConfig, ContextDelta, FileChange } from '../../types.js'
+import type { DeepConfig, ContextDelta, FileChange } from '../../types/core-types.js'
 
 // Mock dependencies
 vi.mock('../git-manager.js', () => ({

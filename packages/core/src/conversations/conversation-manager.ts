@@ -9,7 +9,7 @@ import type {
   ConversationHealth,
   SplitPointAnalysis,
   DeepConfig
-} from './types.js'
+} from '../types/core-types.js'
 import { ConversationCompressionService } from './conversation-compression.js'
 
 export class MemoryConversationManager implements IConversationManager {

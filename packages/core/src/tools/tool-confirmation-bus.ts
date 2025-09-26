@@ -5,7 +5,7 @@ import type {
   ToolConfirmation,
   ToolConfirmationRequest,
   DeepEvent
-} from './types.js'
+} from '../types/core-types.js'
 
 export class ToolConfirmationBus extends EventEmitter<{
   'confirmation_request': (request: ToolConfirmationRequest) => void

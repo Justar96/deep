@@ -3,7 +3,7 @@ import { EventEmitter } from 'events'
 import { watch, FSWatcher, Stats } from 'fs'
 import { stat } from 'fs/promises'
 import { join, relative } from 'path'
-import type { FileChange } from '../types.js'
+import type { FileChange } from '../types/core-types.js'
 
 /**
  * Watches file system changes in the project directory

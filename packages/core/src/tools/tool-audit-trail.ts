@@ -4,7 +4,7 @@ import type {
   ToolAuditEntry,
   ToolImpactAnalysis,
   DeepEvent
-} from './types.js'
+} from '../types/core-types.js'
 
 export class ToolAuditTrail {
   private auditLog: ToolAuditEntry[] = []
