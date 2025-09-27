@@ -261,8 +261,8 @@ describe('ContextAwareDeepEngine', () => {
 
       expect(mockContextStore.setSelectedText).toHaveBeenCalledWith(
         'selected text',
-        { line: 1, column: 0 },
-        { line: 1, column: 13 }
+        { line: 1, character: 0 },
+        { line: 1, character: 13 }
       )
     })
 

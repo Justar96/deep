@@ -2,6 +2,7 @@
 import { OpenAI } from 'openai'
 import type { IResponseClient, DeepConfig } from '../types/core-types.js'
 import type { ResponseObject, ResponseCreateParams, Item } from '../types/index.js'
+import { getEnv } from '../types/env-types.js'
 
 export class OpenAIResponseClient implements IResponseClient {
   private client: OpenAI
@@ -120,7 +121,7 @@ export class OpenAIResponseClient implements IResponseClient {
     if (this.config.includeEncrypted) {
       enhanced.include = [...(enhanced.include || []), 'reasoning.encrypted_content']
       // Force store=false when using encrypted reasoning unless explicitly overridden
-      if (typeof process !== 'undefined' && process.env?.OPENAI_RESP_STORE === undefined) {
+      if (typeof process !== 'undefined' && getEnv('OPENAI_RESP_STORE') === undefined) {
         enhanced.store = false
       }
     }

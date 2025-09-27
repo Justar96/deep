@@ -108,3 +108,20 @@ export interface ActiveExecution {
   status: 'running' | 'completed' | 'failed' | 'timeout'
   pid?: number
 }
+
+// Enhanced tool entry with additional metadata
+export interface EnhancedToolEntry extends ToolEntry {
+  metadata?: {
+    version?: string
+    lastUsed?: Date
+    usage?: {
+      totalCalls: number
+      successfulCalls: number
+      failedCalls: number
+    }
+    performance?: {
+      averageExecutionTime: number
+      maxExecutionTime: number
+    }
+  }
+}

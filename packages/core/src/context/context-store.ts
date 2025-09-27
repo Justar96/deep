@@ -226,8 +226,8 @@ export class ContextStore implements IContextStore {
     this.updateContextWithDelta(delta)
   }
 
-  async setCursorPosition(line: number, column: number): Promise<void> {
-    const cursorPosition = { line, column }
+  async setCursorPosition(line: number, character: number): Promise<void> {
+    const cursorPosition = { line, character }
 
     // Update cursor position for active file
     const activeFile = this.context.openFiles.find(f => f.isActive)
@@ -252,8 +252,8 @@ export class ContextStore implements IContextStore {
 
   async setSelectedText(
     content: string,
-    start: {line: number, column: number},
-    end: {line: number, column: number}
+    start: {line: number, character: number},
+    end: {line: number, character: number}
   ): Promise<void> {
     // Limit selected text length like Gemini CLI
     const maxLength = 16384 // 16 KiB limit
@@ -265,8 +265,8 @@ export class ContextStore implements IContextStore {
       content: truncatedContent,
       startLine: start.line,
       endLine: end.line,
-      startColumn: start.column,
-      endColumn: end.column
+      startColumn: start.character,
+      endColumn: end.character
     }
 
     // Update selected text for active file
@@ -459,7 +459,7 @@ export class ContextStore implements IContextStore {
     return 'npm'
   }
 
-  private detectProjectType(packageJson: any): string {
+  private detectProjectType(packageJson: any): 'node' | 'react' | 'vue' | 'python' | 'rust' | 'go' | 'other' {
     if (packageJson.dependencies?.react || packageJson.devDependencies?.react) {
       return 'react'
     }
@@ -468,6 +468,18 @@ export class ContextStore implements IContextStore {
     }
     if (packageJson.dependencies?.['@types/node'] || packageJson.devDependencies?.['@types/node']) {
       return 'node'
+    }
+    // Check for Python project indicators
+    if (packageJson.scripts?.['python'] || packageJson.dependencies?.['python']) {
+      return 'python'
+    }
+    // Check for Rust project indicators (though unlikely in package.json)
+    if (packageJson.dependencies?.['rust'] || packageJson.scripts?.['cargo']) {
+      return 'rust'
+    }
+    // Check for Go project indicators
+    if (packageJson.scripts?.['go'] || packageJson.dependencies?.['go']) {
+      return 'go'
     }
     return 'other'
   }

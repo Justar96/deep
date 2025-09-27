@@ -99,6 +99,9 @@ export interface DeepConfig {
     trackGitState: boolean
     relevanceThreshold: number // 0-1 score for context relevance filtering
   }
+
+  // Model Intelligence & Routing configuration (Sprint 4)
+  modelIntelligence: ModelIntelligenceConfig
 }
 
 // Enhanced conversation state management
@@ -320,12 +323,24 @@ export interface FileChange {
   relevanceScore?: number // 0-1 score for context filtering
 }
 
+// Open file information for IDE context
+export interface OpenFile {
+  path: string
+  timestamp: number
+  isActive: boolean
+  cursor?: {
+    line: number
+    character: number
+  }
+  selectedText?: string
+}
+
 // Core IDE context state
 export interface IDEContext {
   activeFile?: string
   cursorPosition?: {
     line: number
-    column: number
+    character: number
   }
   selectedText?: {
     content: string
@@ -334,7 +349,7 @@ export interface IDEContext {
     startColumn: number
     endColumn: number
   }
-  openFiles: string[]
+  openFiles: OpenFile[]
   projectRoot: string
   gitState: GitContext
   recentChanges: FileChange[]
@@ -350,7 +365,7 @@ export interface WorkspaceSettings {
   language: string
   formatter?: string
   linter?: string
-  testFramework?: string
+  testFramework?: string | undefined
   buildCommand?: string
   packageManager?: 'npm' | 'yarn' | 'pnpm' | 'bun'
   projectType?: 'node' | 'react' | 'vue' | 'python' | 'rust' | 'go' | 'other'
@@ -414,7 +429,7 @@ export interface ContextRelevance {
 // Context compression for large codebases
 export interface ContextCompression {
   enabled: boolean
-  strategy: 'summarize' | 'filter' | 'truncate'
+  strategy: 'smart' | 'filter'
   threshold: number // Token threshold for compression
   preserveActive: boolean // Always preserve active file context
   maxRelevantFiles: number // Maximum number of files to include
@@ -426,8 +441,8 @@ export interface IContextStore {
   getCurrentContext(): Promise<IDEContext>
   updateContext(delta: ContextDelta): Promise<void>
   setActiveFile(filePath: string): Promise<void>
-  setCursorPosition(line: number, column: number): Promise<void>
-  setSelectedText(content: string, start: {line: number, column: number}, end: {line: number, column: number}): Promise<void>
+  setCursorPosition(line: number, character: number): Promise<void>
+  setSelectedText(content: string, start: {line: number, character: number}, end: {line: number, character: number}): Promise<void>
 
   // File and project tracking
   addOpenFile(filePath: string): Promise<void>
@@ -478,7 +493,7 @@ export interface IDEIntegration {
 
   // Event handlers
   onActiveFileChange(callback: (filePath: string) => void): void
-  onCursorMove(callback: (line: number, column: number) => void): void
+  onCursorMove(callback: (line: number, character: number) => void): void
   onSelectionChange(callback: (selection: IDEContext['selectedText']) => void): void
   onFileCreate(callback: (filePath: string) => void): void
   onFileModify(callback: (filePath: string) => void): void
@@ -506,7 +521,7 @@ export type ContextEvent =
   | { type: 'file_change_detected'; data: { change: FileChange; relevance: ContextRelevance } }
   | { type: 'git_state_change'; data: { gitState: GitContext; changedFiles: string[] } }
   | { type: 'active_file_change'; data: { previousFile?: string; newFile: string } }
-  | { type: 'cursor_position_change'; data: { line: number; column: number; file: string } }
+  | { type: 'cursor_position_change'; data: { line: number; character: number; file: string } }
   | { type: 'context_relevance_analysis'; data: { analysis: ContextRelevance[]; threshold: number } }
 
 // Enhanced DeepEvent with context integration
@@ -535,4 +550,207 @@ export interface IContextAwareDeepEngine extends IDeepEngine {
   connectIDE(integration: IDEIntegration): Promise<void>
   disconnectIDE(): Promise<void>
   getIDEIntegration(): IDEIntegration | null
+}
+
+// ================================
+// Sprint 4: Model Intelligence & Routing
+// ================================
+
+// Request complexity analysis for intelligent model routing
+export interface RequestComplexityAnalysis {
+  complexity: 'simple' | 'moderate' | 'complex'
+  factors: {
+    hasToolCalls: boolean
+    requiresReasoning: boolean
+    contentLength: number
+    previousContext: number // Number of previous messages
+    domainSpecific: boolean
+    multiStep: boolean
+  }
+  confidence: number // 0-1 score for complexity assessment
+  suggestedModel: string
+  reasoning: string
+}
+
+// Model routing strategy configuration
+export interface ModelRoutingStrategy {
+  complexity: 'simple' | 'moderate' | 'complex'
+  preferredModel: string
+  fallbackModels: string[]
+  costThreshold?: number // Maximum cost per token
+  latencyThreshold?: number // Maximum response time in ms
+  qualityThreshold?: number // Minimum quality score requirement
+  conditions?: {
+    maxTokens?: number
+    requiresReasoning?: boolean
+    allowToolCalls?: boolean
+    domainRestrictions?: string[]
+  }
+}
+
+// Performance metrics tracking per model
+export interface ModelMetrics {
+  modelName: string
+  requestCount: number
+  successCount: number
+  errorCount: number
+  totalLatency: number
+  averageLatency: number
+  totalTokens: {
+    input: number
+    output: number
+    total: number
+  }
+  totalCost: number
+  averageCostPerToken: number
+  qualityScores: number[] // User feedback or automated quality assessments
+  averageQualityScore: number
+  lastUpdated: Date
+  weeklyStats?: {
+    requests: number
+    errors: number
+    avgLatency: number
+    totalCost: number
+  }
+  monthlyStats?: {
+    requests: number
+    errors: number
+    avgLatency: number
+    totalCost: number
+  }
+}
+
+// Circuit breaker states for model fallback
+export type CircuitBreakerState = 'closed' | 'open' | 'half-open'
+
+// Circuit breaker configuration for model fallbacks
+export interface CircuitBreakerConfig {
+  failureThreshold: number // Number of failures before opening circuit
+  successThreshold: number // Number of successes to close circuit
+  timeout: number // Time in ms before trying half-open
+  resetTimeout: number // Time in ms before fully resetting
+  monitoringWindow: number // Time window for failure counting (ms)
+}
+
+// Model fallback system configuration
+export interface ModelFallbackConfig {
+  enabled: boolean
+  circuitBreaker: CircuitBreakerConfig
+  retryPolicy: {
+    maxRetries: number
+    backoffMultiplier: number // Exponential backoff multiplier
+    baseDelay: number // Base delay in ms
+    maxDelay: number // Maximum delay in ms
+    retryableErrors: string[] // Error codes that should trigger retry
+  }
+  quotaManagement: {
+    enabled: boolean
+    dailyLimit?: number
+    hourlyLimit?: number
+    costLimit?: number // Maximum cost per day
+    gracefulDegradation: boolean // Switch to cheaper models when near limits
+  }
+}
+
+// Model availability and health status
+export interface ModelAvailability {
+  modelName: string
+  isAvailable: boolean
+  circuitBreakerState: CircuitBreakerState
+  lastError?: {
+    message: string
+    timestamp: Date
+    errorCode?: string
+  }
+  healthScore: number // 0-1 score based on recent performance
+  estimatedLatency: number // Expected response time in ms
+  quotaStatus: {
+    remaining: number
+    resetTime?: Date
+    nearLimit: boolean
+  }
+}
+
+// GPT-5 specific optimization parameters
+export interface GPT5OptimizationConfig {
+  reasoningEffortMapping: {
+    simple: 'minimal' | 'low'
+    moderate: 'low' | 'medium'
+    complex: 'medium' | 'high'
+  }
+  verbosityMapping: {
+    simple: 'low' | 'medium'
+    moderate: 'medium'
+    complex: 'medium' | 'high'
+  }
+  automaticOptimization: boolean
+  contextAwareParameters: boolean // Adjust parameters based on IDE context
+}
+
+// Model intelligence configuration for Sprint 4
+export interface ModelIntelligenceConfig {
+  enabled: boolean
+  routingStrategies: ModelRoutingStrategy[]
+  defaultStrategy: string // Name of default routing strategy
+  fallbackConfig: ModelFallbackConfig
+  gpt5Optimization: GPT5OptimizationConfig
+  performanceTracking: {
+    enabled: boolean
+    metricsRetentionDays: number
+    qualityFeedbackEnabled: boolean
+    automaticModelSwitching: boolean
+  }
+  costOptimization: {
+    enabled: boolean
+    maxDailyCost: number
+    preferCheaperModels: boolean
+    costThresholdForFallback: number
+  }
+}
+
+// Model routing events for streaming
+export type ModelRoutingEvent =
+  | { type: 'model_selection'; data: { selectedModel: string; complexity: RequestComplexityAnalysis; strategy: ModelRoutingStrategy } }
+  | { type: 'model_fallback'; data: { fromModel: string; toModel: string; reason: string; circuitBreakerState: CircuitBreakerState } }
+  | { type: 'performance_update'; data: { modelName: string; metrics: Partial<ModelMetrics> } }
+  | { type: 'circuit_breaker_state_change'; data: { modelName: string; newState: CircuitBreakerState; reason: string } }
+  | { type: 'quota_warning'; data: { modelName: string; quotaType: 'daily' | 'hourly' | 'cost'; remaining: number; threshold: number } }
+  | { type: 'gpt5_optimization'; data: { originalParams: object; optimizedParams: object; complexity: string } }
+
+// Enhanced DeepEvent with model routing integration
+export type ModelIntelligentDeepEvent = DeepEvent | ContextEvent | ModelRoutingEvent
+
+// Model intelligence interface for intelligent model selection
+export interface IModelIntelligence {
+  // Complexity analysis
+  analyzeRequestComplexity(input: string, context?: IDEContext, conversationHistory?: import('./index.js').Item[]): Promise<RequestComplexityAnalysis>
+
+  // Model selection
+  selectOptimalModel(complexity: RequestComplexityAnalysis, constraints?: Partial<ModelRoutingStrategy>): Promise<string>
+
+  // Performance tracking
+  recordModelMetrics(modelName: string, metrics: Partial<ModelMetrics>): Promise<void>
+  getModelMetrics(modelName: string): Promise<ModelMetrics | null>
+  getAllModelMetrics(): Promise<ModelMetrics[]>
+
+  // Fallback management
+  checkModelAvailability(modelName: string): Promise<ModelAvailability>
+  handleModelFailure(modelName: string, error: Error): Promise<string> // Returns fallback model
+  resetCircuitBreaker(modelName: string): Promise<void>
+
+  // GPT-5 optimization
+  optimizeGPT5Parameters(complexity: RequestComplexityAnalysis, baseParams: object): Promise<object>
+
+  // Cost management
+  estimateRequestCost(modelName: string, inputTokens: number, estimatedOutputTokens: number): Promise<number>
+  checkDailyCostLimit(): Promise<{ nearLimit: boolean; remaining: number }>
+
+  // Health monitoring
+  performHealthCheck(): Promise<{ healthy: boolean; issues: string[] }>
+  getSystemStatus(): Promise<{
+    modelsAvailable: number
+    totalRequests: number
+    totalCost: number
+    averageLatency: number
+  }>
 }

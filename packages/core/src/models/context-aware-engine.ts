@@ -103,8 +103,8 @@ export class ContextAwareDeepEngine extends DeepEngine implements IContextAwareD
         if (this.contextStore && selection) {
           await this.contextStore.setSelectedText(
             selection.content,
-            { line: selection.startLine, column: selection.startColumn },
-            { line: selection.endLine, column: selection.endColumn }
+            { line: selection.startLine, character: selection.startColumn },
+            { line: selection.endLine, character: selection.endColumn }
           )
         }
       })

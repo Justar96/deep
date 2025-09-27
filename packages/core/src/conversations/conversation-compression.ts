@@ -8,6 +8,7 @@ import type {
   ConversationHealth,
   DeepConfig
 } from '../types/core-types.js'
+import { getEnv } from '../types/env-types.js'
 
 export class ConversationCompressionService {
   private client: OpenAI
@@ -53,7 +54,7 @@ export class ConversationCompressionService {
    */
   private setupProcessCleanup(): void {
     // Skip process cleanup setup in test environment to prevent memory leaks
-    if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') {
+    if (typeof process !== 'undefined' && getEnv('NODE_ENV') === 'test') {
       return
     }
 

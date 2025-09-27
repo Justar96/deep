@@ -23,12 +23,9 @@ export class ContextCompressor {
       : 'filter'
 
     switch (compressionStrategy) {
-      case 'summarize':
-        return this.summarizeContext(context)
       case 'filter':
         return this.filterContext(context)
-      case 'truncate':
-        return this.truncateContext(context)
+      case 'smart':
       default:
         return this.smartCompress(context)
     }

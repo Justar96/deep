@@ -279,7 +279,7 @@ export class ToolRegistry extends EventEmitter<{ event: (event: DeepEvent) => vo
 
     // Cancel all active executions
     const activeToolNames = Array.from(this.activeExecutions.values())
-      .map(context => context.metadata?.toolName as string)
+      .map(context => context.metadata?.['toolName'] as string)
       .filter(Boolean)
 
     this.activeExecutions.clear()

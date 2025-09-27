@@ -3,6 +3,11 @@
 
 // Core types
 export * from './core-types.js'
+export type { OpenFile } from './core-types.js'
+
+// Environment types and helpers
+export type { ProcessEnv, TypedProcess } from './env-types.js'
+export { getEnv, getEnvOrDefault, getEnvBoolean, getEnvNumber, getEnvFloat } from './env-types.js'
 
 // OpenAI API types
 export type {
@@ -16,7 +21,8 @@ export type {
   Item,
   ToolChoice,
   ResponseObject,
-  ResponseCreateParams
+  ResponseCreateParams,
+  ResponseIncludable
 } from './openai-types.js'
 
 // Tool system types
@@ -34,7 +40,8 @@ export type {
   ToolAnalysisResult,
   ToolExecutionResult,
   ToolSecurityReport,
-  ActiveExecution
+  ActiveExecution,
+  EnhancedToolEntry
 } from './tool-types.js'
 
 // Type guards and validation utilities

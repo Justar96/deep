@@ -3,7 +3,7 @@ import chalk from 'chalk'
 import ora from 'ora'
 import inquirer from 'inquirer'
 import { DeepEngine, loadConfig } from '@deep-agent/core'
-import type { DeepEvent } from '@deep-agent/core'
+import type { DeepConfig, Usage, DeepEvent } from '@deep-agent/core'
 import type { Ora } from 'ora'
 
 // Helper function to handle chat events
@@ -139,7 +139,7 @@ export async function askCommand(message: string, options: AskOptions): Promise<
 
   const spinner = ora('Processing...').start()
   let responseText = ''
-  let usage: import('@deep-agent/core').Usage | null = null
+  let usage: Usage | null = null
 
   for await (const event of engine.processMessage(message, options.conversation)) {
     if (event.type === 'content_delta') {

@@ -12,7 +12,9 @@
       "Bash(npm run clean:*)",
       "Bash(npm install:*)",
       "Bash(npm run test:core:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(NODE_ENV=test npm run test -- src/__tests__/model-intelligence.test.ts)",
+      "Bash(NODE_ENV=test npm run test -- src/__tests__/model-intelligence.test.ts --testNamePattern=\"should analyze complex tool-calling requests correctly\")"
     ],
     "deny": [],
     "ask": [],

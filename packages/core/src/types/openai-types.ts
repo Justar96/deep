@@ -34,6 +34,7 @@ export interface FunctionCallItem {
   type: 'function_call'
   name: string
   arguments: string
+  input?: string // Backward compatibility alias for arguments
   call_id: string
   status?: 'completed' | 'in_progress' | 'incomplete'
 }
@@ -58,6 +59,9 @@ export type ToolChoice =
   | 'none'
   | 'required'
   | { type: 'function'; function: { name: string } }
+
+// Response includes for API parameters
+export type ResponseIncludable = 'conversation' | 'messages' | 'files' | 'metadata' | 'usage' | 'output'
 
 export interface ResponseObject {
   id: string
@@ -91,7 +95,7 @@ export interface ResponseCreateParams {
   instructions?: string
   background?: boolean
   conversation?: string | { id: string }
-  include?: string[]
+  include?: ResponseIncludable[]
   max_output_tokens?: number
   max_tool_calls?: number
   metadata?: Record<string, string>

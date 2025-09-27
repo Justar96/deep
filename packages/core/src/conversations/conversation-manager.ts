@@ -11,6 +11,7 @@ import type {
   DeepConfig
 } from '../types/core-types.js'
 import { ConversationCompressionService } from './conversation-compression.js'
+import { getEnv } from '../types/env-types.js'
 
 export class MemoryConversationManager implements IConversationManager {
   private conversations = new Map<string, ConversationState>()
@@ -306,7 +307,7 @@ export class MemoryConversationManager implements IConversationManager {
   // Enhanced conversation-level locking mechanism to prevent race conditions
   private async acquireConversationLock(conversationId: string): Promise<void> {
     // Skip locking in test environment to avoid deadlocks
-    if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') {
+    if (typeof process !== 'undefined' && getEnv('NODE_ENV') === 'test') {
       return
     }
 
@@ -353,7 +354,7 @@ export class MemoryConversationManager implements IConversationManager {
 
   private releaseConversationLock(conversationId: string): void {
     // Skip locking in test environment
-    if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') {
+    if (typeof process !== 'undefined' && getEnv('NODE_ENV') === 'test') {
       return
     }
 
